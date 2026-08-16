@@ -1,0 +1,990 @@
+<title>KopiMeter Quick Start</title>
+<script>document.documentElement.className += " js";</script>
+<style>
+  /* ===== tokens ===== */
+  :root {
+    --ground: #F7F4EC;
+    --surface: #FFFDF8;
+    --surface-2: #F0EBDD;
+    --ink: #1B1813;
+    --ink-soft: #4A453C;
+    --muted: #6C675C;
+    --rule: #DFD8C6;
+    --accent: #8A5A24;
+    --amber: #FFB03A;
+    --kopi: #6B4423;
+    --good: #4E7A46;
+    --bezel: #17150F;
+    --paper-screen: #FAF8F4;   /* the hardware's own screen — never themed */
+    --shadow-sm: 0 1px 2px rgba(27,24,19,.06);
+    --shadow: 0 1px 2px rgba(27,24,19,.06), 0 18px 44px -24px rgba(27,24,19,.4);
+
+    /* canonical curves — from the animation skill, not invented */
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #131109; --surface: #1D1A11; --surface-2: #252112;
+      --ink: #F2EDE1; --ink-soft: #CFC8B6; --muted: #8F8877; --rule: #363120;
+      --accent: #FFB03A; --amber: #FFB03A; --kopi: #B08356; --good: #7FAE76;
+      --bezel: #000000;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.5);
+      --shadow: 0 1px 2px rgba(0,0,0,.5), 0 18px 44px -24px rgba(0,0,0,.85);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #131109; --surface: #1D1A11; --surface-2: #252112;
+    --ink: #F2EDE1; --ink-soft: #CFC8B6; --muted: #8F8877; --rule: #363120;
+    --accent: #FFB03A; --amber: #FFB03A; --kopi: #B08356; --good: #7FAE76;
+    --bezel: #000000;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.5);
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 18px 44px -24px rgba(0,0,0,.85);
+  }
+
+  /* ===== base ===== */
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: ui-sans-serif, "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 17px; line-height: 1.62; padding: 0 20px 110px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 62rem; margin: 0 auto; }
+  h1, h2, h3 { letter-spacing: -0.022em; line-height: 1.13; margin: 0; text-wrap: balance; }
+  h1 { font-size: clamp(2.1rem, 5.4vw, 3.2rem); font-weight: 800; }
+  h2 { font-size: clamp(1.4rem, 3vw, 1.75rem); font-weight: 750; }
+  h3 { font-size: 1.04rem; font-weight: 700; }
+  p { margin: 0; }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+  .eyebrow {
+    font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: .7rem; font-weight: 700; letter-spacing: .17em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  code {
+    font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: .88em; background: var(--surface-2); padding: .14em .4em; border-radius: 5px;
+  }
+
+  /* ===== motion system =====
+     Entrances/exits: ease-out. On-screen movement: ease-in-out.
+     transform + opacity only. Reduced motion keeps opacity, drops movement.
+     Reveals hide content, so they are gated on .js — set by an inline script in
+     the head. Without JS this guide stays fully readable instead of blank,
+     which matters: it is the first thing a customer opens after unboxing. */
+  .js .reveal {
+    opacity: 0; transform: translateY(14px);
+    transition: opacity 400ms var(--ease-out), transform 400ms var(--ease-out);
+    transition-delay: var(--d, 0ms);
+  }
+  .js .reveal.in { opacity: 1; transform: none; }
+
+  button, .btn {
+    font: inherit; cursor: pointer;
+    transition: transform 160ms var(--ease-out), background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+  }
+  button:active, .btn:active { transform: scale(0.97); }
+
+  @media print {
+    .js .reveal { opacity: 1 !important; transform: none !important; }
+    .dock { display: none !important; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+    *, *::before, *::after {
+      animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important;
+    }
+  }
+
+  /* ===== hero ===== */
+  .hero { display: grid; grid-template-columns: 1.05fr .95fr; gap: 42px; align-items: center; padding: 58px 0 28px; }
+  @media (max-width: 860px) { .hero { grid-template-columns: 1fr; padding-top: 38px; } }
+  .hero-copy { display: flex; flex-direction: column; gap: 18px; }
+  .brandline { display: flex; align-items: center; gap: 12px; }
+  .brandline svg { width: 34px; height: 31px; }
+  .wordmark { font-weight: 800; font-size: 1.02rem; }
+  .lede { font-size: 1.13rem; color: var(--ink-soft); max-width: 32rem; }
+
+  .startcard {
+    display: flex; gap: 16px; align-items: center; background: var(--surface);
+    border: 1px solid var(--rule); border-radius: 14px; padding: 14px 16px; max-width: 30rem;
+  }
+  .startcard img { border-radius: 8px; background: #fff; padding: 4px; flex: none; width: 104px; height: 104px; }
+  .startcard p { font-size: .9rem; color: var(--ink-soft); }
+  .startcard .sub { font-size: .78rem; color: var(--muted); margin-top: 5px; }
+
+  /* ===== device ===== */
+  .device {
+    background: var(--bezel); border-radius: 28px; padding: 20px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 10px; align-items: center;
+    max-width: 400px; margin: 0 auto; width: 100%;
+  }
+  .device.small { max-width: 236px; padding: 12px; border-radius: 18px; gap: 7px; }
+  .screenbox { position: relative; width: 100%; }
+  .device canvas, .device .htmlscreen {
+    width: 100%; aspect-ratio: 1; display: block; border-radius: 10px;
+    image-rendering: pixelated; background: var(--paper-screen);
+  }
+  .device .cap {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-variant-numeric: tabular-nums;
+    color: #B9B2A4; font-size: .73rem; letter-spacing: .07em; text-align: center;
+  }
+  .device .cap b { color: #FAF8F4; font-weight: 700; }
+  .tapme { cursor: pointer; }
+  .chit {
+    position: absolute; left: 7%; right: 7%; bottom: 6%;
+    background: #FFFDF8; border: 2px solid #111318; border-radius: 8px; box-shadow: 0 3px 0 #111318;
+    padding: 9px 12px; color: #16130D;
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-variant-numeric: tabular-nums;
+    font-size: .8rem; line-height: 1.5;
+    opacity: 0; transform: translateY(8px) scale(0.97);
+    transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
+    pointer-events: none;
+  }
+  .chit.show { opacity: 1; transform: none; }
+  .chit b { font-size: 1rem; }
+
+  /* ===== docked companion — mirrors the step you're reading ===== */
+  .dock {
+    position: fixed; right: 22px; bottom: 22px; z-index: 40; width: 190px;
+    opacity: 0; transform: translateY(16px) scale(0.96); pointer-events: none;
+    transition: opacity 260ms var(--ease-out), transform 260ms var(--ease-out);
+  }
+  .dock.show { opacity: 1; transform: none; pointer-events: auto; }
+  .dock .device { padding: 10px; border-radius: 16px; gap: 6px; }
+  .dock .cap { font-size: .64rem; }
+  .dock .docklabel {
+    margin-top: 7px; text-align: center; font-size: .68rem; color: var(--muted);
+    font-family: ui-monospace, Menlo, monospace; letter-spacing: .05em;
+  }
+  .dock .prog { display: flex; gap: 4px; justify-content: center; margin-top: 7px; }
+  .dock .prog i {
+    width: 16px; height: 4px; border-radius: 2px; background: var(--rule);
+    transition: background-color 200ms var(--ease-out);
+  }
+  .dock .prog i.done { background: var(--amber); }
+  .dock .prog i.here { background: var(--accent); }
+  /* Content is 62rem (~992px) centred; the dock needs 190px + 22px of clear
+     gutter on the right, so it can only appear once the viewport is at least
+     992 + 2*212 wide. Below that it would sit on top of the step content. */
+  @media (max-width: 1416px) { .dock { display: none; } }
+
+  /* ===== sections ===== */
+  section { padding: 56px 0 0; }
+  .sec-head { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .sec-head p.sub { color: var(--muted); max-width: 40rem; }
+  .card { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 20px 22px; box-shadow: var(--shadow-sm); }
+  .checklist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .checklist li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; }
+  .checklist .tick { color: var(--accent); font-weight: 800; }
+  .checklist .note { color: var(--muted); }
+
+  /* ===== steps ===== */
+  .steptop { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .osswitch { display: inline-flex; gap: 3px; padding: 3px; background: var(--surface-2); border: 1px solid var(--rule); border-radius: 10px; }
+  .osswitch button {
+    border: 0; background: transparent; color: var(--muted); font-size: .82rem; font-weight: 700;
+    padding: 6px 14px; border-radius: 7px;
+  }
+  .osswitch button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); }
+  .donecount { font-size: .84rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .donecount b { color: var(--ink); }
+
+  .step {
+    display: grid; grid-template-columns: 52px 1fr minmax(210px, 290px);
+    gap: 18px 26px; align-items: start; padding: 28px 0; border-top: 1px solid var(--rule);
+  }
+  .step:last-of-type { border-bottom: 1px solid var(--rule); }
+  @media (max-width: 800px) {
+    .step { grid-template-columns: 44px 1fr; }
+    .step .visual { grid-column: 1 / -1; max-width: 290px; margin: 0 auto; }
+  }
+  .stepnum {
+    width: 44px; height: 44px; border-radius: 50%; background: var(--amber); color: #1A1104;
+    display: grid; place-items: center; font-weight: 800; font-size: 1.05rem;
+    font-variant-numeric: tabular-nums; position: relative;
+    transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out);
+  }
+  .stepnum .chk {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    font-size: 1.25rem; opacity: 0; transform: scale(0.9);
+    transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
+  }
+  .step[data-done="1"] .stepnum { background: var(--good); color: #fff; }
+  .step[data-done="1"] .stepnum .n { opacity: 0; }
+  .step[data-done="1"] .stepnum .chk { opacity: 1; transform: none; }
+  .stepnum .n { transition: opacity 160ms var(--ease-out); }
+
+  .step-body { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .step[data-done="1"] .step-body > h3 { color: var(--muted); }
+  .os-block { display: none; }
+  .os-block.on { display: block; }
+  .oslabel { font-size: .7rem; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; color: var(--muted); }
+  .callout { border-left: 3px solid var(--amber); background: var(--surface-2); padding: 12px 15px; border-radius: 0 10px 10px 0; font-size: .95rem; }
+
+  .cmd { position: relative; }
+  pre.cmd-pre {
+    background: #17150F; color: #F2EDE1; border-radius: 10px; padding: 13px 54px 13px 16px; margin: 0;
+    overflow-x: auto; font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace; font-size: .9rem;
+  }
+  /* The global `code` rule paints a light chip background, which would put
+     near-white text on near-white inside the dark command box. Reset it. */
+  pre.cmd-pre code { background: none; padding: 0; border-radius: 0; font-size: 1em; color: inherit; }
+  .copy {
+    position: absolute; top: 8px; right: 8px; border: 1px solid #3A362E; background: #24211A;
+    color: #CFC8B6; font-size: .72rem; font-weight: 700; padding: 5px 10px; border-radius: 7px;
+    font-family: ui-monospace, Menlo, monospace;
+  }
+  .copy[data-copied="1"] { background: var(--good); border-color: var(--good); color: #fff; }
+
+  .markdone {
+    align-self: flex-start; margin-top: 4px; border: 1.5px solid var(--rule); background: var(--surface);
+    color: var(--ink-soft); font-size: .82rem; font-weight: 700; padding: 7px 14px; border-radius: 9px;
+  }
+  .step[data-done="1"] .markdone { background: var(--surface-2); color: var(--muted); border-color: transparent; }
+
+  /* step visuals */
+  .visual { display: flex; flex-direction: column; gap: 8px; }
+  .visual .vlabel { font-size: .72rem; color: var(--muted); text-align: center; font-family: ui-monospace, Menlo, monospace; letter-spacing: .06em; }
+  .mockwin { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); font-size: .8rem; }
+  .mockwin .bar { display: flex; gap: 5px; padding: 9px 11px; border-bottom: 1px solid var(--rule); background: var(--surface-2); }
+  .mockwin .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--rule); }
+  .mockwin .body { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .track { height: 8px; background: var(--surface-2); border-radius: 5px; overflow: hidden; }
+  .track i { display: block; height: 100%; border-radius: 5px; background: var(--amber); transform-origin: left; transform: scaleX(.06); }
+  .playing .track i { animation: fill 2.6s var(--ease-out) infinite; }
+  @keyframes fill { 0% { transform: scaleX(.06); } 70% { transform: scaleX(.92); } 100% { transform: scaleX(1); opacity: 0; } }
+  .trayline { display: flex; align-items: center; gap: 8px; font-size: .78rem; color: var(--muted); }
+  .traycup { width: 18px; height: 16px; opacity: 0; }
+  .playing .traycup { animation: pop 2.6s var(--ease-out) infinite; }
+  @keyframes pop { 0%, 68% { opacity: 0; transform: scale(0.94); } 82%, 100% { opacity: 1; transform: none; } }
+
+  .bt { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 26px 10px; }
+  .bt .node { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: .72rem; color: var(--muted); font-family: ui-monospace, Menlo, monospace; }
+  .bt .laptop { width: 34px; height: 22px; border: 2.5px solid var(--ink-soft); border-radius: 4px 4px 0 0; border-bottom-width: 6px; }
+  .bt .meter { width: 26px; height: 26px; border: 2.5px solid var(--ink-soft); border-radius: 7px; background: var(--paper-screen); }
+  .bt .waves { display: flex; gap: 4px; }
+  .bt .waves i { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); opacity: .4; }
+  .playing .bt .waves i { animation: hop 1.5s var(--ease-in-out) infinite; }
+  .playing .bt .waves i:nth-child(2) { animation-delay: .18s; }
+  .playing .bt .waves i:nth-child(3) { animation-delay: .36s; }
+  @keyframes hop { 0%, 60%, 100% { transform: none; opacity: .4; } 30% { transform: translateY(-5px); opacity: 1; } }
+
+  .term { background: #17150F; border-radius: 12px; box-shadow: var(--shadow-sm); padding: 12px 14px 16px; color: #E8E2D4; font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace; font-size: .84rem; }
+  .term .bar { display: flex; gap: 5px; margin-bottom: 10px; }
+  .term .dot { width: 9px; height: 9px; border-radius: 50%; background: #3A3630; }
+  .term .line { white-space: nowrap; overflow: hidden; }
+  /* Typewriter via clip-path, not max-width: max-width would relayout the line
+     every step. clip-path is composited, so the caret never jitters. */
+  .term .typed { display: inline-block; vertical-align: bottom; white-space: nowrap; }
+  .playing .term .typed { animation: type 4s steps(12) infinite; }
+  @keyframes type { 0%, 8% { clip-path: inset(0 100% 0 0); } 45%, 100% { clip-path: inset(0 0 0 0); } }
+  /* The caret rides the same steps() clock as the text, translated back by the
+     un-typed remainder — composited, so it lands exactly on the last glyph. */
+  .term .caret { display: inline-block; width: 8px; height: 1.05em; background: #FFB03A; vertical-align: text-bottom; }
+  .playing .term .caret { animation: blink 1.1s steps(1) infinite, caretride 4s steps(12) infinite; }
+  @keyframes caretride { 0%, 8% { transform: translateX(-12ch); } 45%, 100% { transform: none; } }
+  @keyframes blink { 50% { opacity: 0; } }
+  .term .ok { color: #9BB88F; opacity: 0; }
+  .playing .term .ok { animation: okin 4s var(--ease-out) infinite; }
+  @keyframes okin { 0%, 55% { opacity: 0; } 70%, 100% { opacity: 1; } }
+  .term .prompt { color: #8F8877; }
+
+  .phone { width: 148px; margin: 0 auto; background: var(--bezel); border-radius: 20px; padding: 10px 8px; box-shadow: var(--shadow-sm); }
+  .phone .pscreen { background: var(--paper-screen); border-radius: 12px; padding: 12px 10px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+  .badge { font-size: .62rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; letter-spacing: .05em; font-family: ui-monospace, Menlo, monospace; background: #DCEAD7; color: #2F5228; }
+  .phone .qr-mini { width: 72px; height: 72px; border-radius: 6px; }
+
+  /* ===== screens + demos ===== */
+  .screens, .demos { display: grid; grid-template-columns: repeat(auto-fit, minmax(212px, 1fr)); gap: 18px; }
+  .htmlscreen { padding: 16px 14px; display: flex; flex-direction: column; justify-content: center; gap: 10px; overflow: hidden; }
+  .mockline { font-family: ui-monospace, Menlo, monospace; font-size: .66rem; color: #857E6E; letter-spacing: .04em; }
+  .mockline b { color: #16130D; font-size: .85rem; }
+  .mockbar { height: 10px; border-radius: 6px; background: #E4DECF; overflow: hidden; }
+  .mockbar i {
+    display: block; height: 100%; border-radius: 6px; background: #FFB03A;
+    transform-origin: left; transform: scaleX(0);
+    transition: transform 700ms var(--ease-out) 120ms;
+  }
+  .mockbar.warn i { background: #B06A18; transition-delay: 240ms; }
+  .in .mockbar i { transform: scaleX(var(--w)); }
+  .spark { width: 100%; height: 56px; }
+  .spark polyline { fill: none; stroke-width: 2; stroke-dasharray: 220; stroke-dashoffset: 220; transition: stroke-dashoffset 900ms var(--ease-out) 150ms; }
+  .in .spark polyline { stroke-dashoffset: 0; }
+  .demo { display: flex; flex-direction: column; gap: 10px; }
+  .demo .dcap h3 { color: var(--accent); margin-bottom: 3px; }
+  .demo .dcap p { font-size: .88rem; color: var(--ink-soft); }
+
+  /* ===== troubleshooting ===== */
+  .tlist { display: flex; flex-direction: column; }
+  details { border-top: 1px solid var(--rule); padding: 13px 0; }
+  details:last-of-type { border-bottom: 1px solid var(--rule); }
+  summary { cursor: pointer; font-weight: 700; list-style: none; display: flex; gap: 12px; align-items: baseline; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: "+"; color: var(--accent); font-weight: 800; transition: transform 200ms var(--ease-out); }
+  details[open] summary::before { transform: rotate(45deg); }
+  details .ans { margin-top: 9px; color: var(--ink-soft); display: flex; flex-direction: column; gap: 6px; }
+  details .ans .means { font-size: .88rem; color: var(--muted); }
+  footer.legal { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--rule); color: var(--muted); font-size: .85rem; display: flex; flex-direction: column; gap: 8px; }
+  .privacy-grid { display: flex; flex-direction: column; gap: 12px; }
+  .privacy-grid strong { color: var(--ink); }
+</style>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="hero-copy">
+      <div class="brandline reveal">
+        <svg viewBox="0 0 11 10" shape-rendering="crispEdges" role="img" aria-label="KopiMeter cup mark"><g id="mark"></g></svg>
+        <span class="wordmark">KopiMeter</span>
+      </div>
+      <h1 class="reveal" style="--d:60ms">Your Claude usage,<br>on your desk.</h1>
+      <p class="lede reveal" style="--d:110ms">
+        The glass is the meter: it holds exactly what's left of your Claude session
+        and drains as you work. Setup takes about ten minutes — this page walks you
+        through all five steps and keeps your place.
+      </p>
+      <div class="startcard reveal" style="--d:160ms">
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUgAAAFIAQAAAAAab1qeAAAB0klEQVR42u2aQXIjMQwD0Vv5/5eRAynK2VOoXDGu8owtnLooEuQI65fXP0UZZZRRRnmvL0mino2MJAtLwnclPDc85aJq6vE/kvUcngslIAkjIZn6ZlZC6UVpyVjIUt9C6S9KKnOqsqhD6TF/NjrkSp697+9KeK54cjY8/ZExwrMSnguevjjlU5F+Rmd4LpSoKnnveXdp6sglfmmrpGIRUdu8AUu0tw+ljdIWHH90ohO6xMd/7pW28OCjIlNCIFeEhtLv8ydNkQO37CfubBpK235Tkk337p1M+5569KC0BXYDFCeZMn1SKC36ow5Fu8qSp/+06J/huarvtwq5A7RS6BT48FwpUTeZHoQc95T8+eCX2sZzANZsmfjPlbLnc+6e3Uyb6Ru34bnlOR7JPVTquXK7+rw/Wvsl2W2Y+HxrNG1oKG3mSzVA9ilBdIeEjZM/1/v9WE01vkmn6vFyeG54oluJzp/ckXLy58t83rrxWTHpj/fw4bngOZF49/mNVOLn/3A+pNhht22a9ig8N/OQiUnagKLbccYvvSuPZXK963TP6EPpRdm2c2ZNn81TKC38ku9WHwvlOeQQSo/nQ9pznr7d53wI8Z/r/iiUoowyyihXym/eqdqrPd/PCAAAAABJRU5ErkJggg==" alt="QR code linking to the KopiMeter download page" width="328" height="328">
+        <div>
+          <p><strong>Scan to start</strong> — opens this guide and the installer at
+          <a href="https://github.com/huachong95/kopimeter-downloads/releases/latest">the download page</a>. Same code as the card in your box.</p>
+          <p class="sub">A second QR appears in step 5 — that one is made by the app on your own computer.</p>
+        </div>
+      </div>
+    </div>
+    <div class="device reveal tapme" style="--d:100ms" id="heroDevice">
+      <div class="screenbox">
+        <canvas width="40" height="40" data-scene="hero" aria-label="Live preview of the KopiMeter display"></canvas>
+        <div class="chit" id="heroChit" aria-live="polite"></div>
+      </div>
+      <div class="cap"><b>LIVE</b> · the real display — tap the glass</div>
+    </div>
+  </header>
+
+  <section>
+    <div class="sec-head reveal">
+      <p class="eyebrow">Before you start</p>
+      <h2>What you'll need</h2>
+    </div>
+    <div class="card reveal" style="--d:60ms">
+      <ul class="checklist">
+        <li><span class="tick">✓</span><span><strong>A Claude Pro or Max subscription.</strong> <span class="note">KopiMeter reads the session and weekly limits those plans come with.</span></span></li>
+        <li><span class="tick">✓</span><span><strong>A Windows 10/11 or macOS 12+ computer</strong> <span class="note">with Bluetooth — the machine KopiMeter pairs with, usually the one you work on.</span></span></li>
+        <li><span class="tick">✓</span><span><strong>Claude Code installed on it.</strong> <span class="note">You sign in with it once, in step 4, then never need to open it again.</span></span></li>
+        <li><span class="tick">✓</span><span><strong>The USB-C cable in the box</strong> <span class="note">and a spare port or charger.</span></span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="steps">
+    <div class="sec-head reveal">
+      <p class="eyebrow">Setup</p>
+      <h2>Five steps, in order</h2>
+      <div class="steptop">
+        <p class="sub">Tick each one off as you go — this page remembers where you stopped.</p>
+        <div style="display:flex; gap:14px; align-items:center">
+          <span class="donecount" id="doneCount"><b>0</b> of 5 done</span>
+          <div class="osswitch" role="group" aria-label="Operating system">
+            <button data-os="win" aria-pressed="true">Windows</button>
+            <button data-os="mac" aria-pressed="false">macOS</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step reveal" data-step="1" data-done="0">
+      <div class="stepnum"><span class="n">1</span><span class="chk">✓</span></div>
+      <div class="step-body">
+        <h3>Power up KopiMeter</h3>
+        <p>Plug the USB-C cable into the side port and any charger or computer port.
+        The kopi glass appears in a couple of seconds, then the screen settles on
+        <strong>Waiting</strong> — the right screen to be on. It means the device is
+        advertising over Bluetooth, ready for step 3.</p>
+        <button class="markdone">Mark done</button>
+      </div>
+      <div class="visual">
+        <div class="device small"><div class="screenbox">
+          <canvas width="40" height="40" data-scene="waiting" aria-label="The waiting screen"></canvas>
+        </div><div class="cap">WAITING</div></div>
+        <p class="vlabel">what your screen shows</p>
+      </div>
+    </div>
+
+    <div class="step reveal" data-step="2" data-done="0">
+      <div class="stepnum"><span class="n">2</span><span class="chk">✓</span></div>
+      <div class="step-body">
+        <h3>Install the KopiMeter app</h3>
+        <p>Go to <a href="https://github.com/huachong95/kopimeter-downloads/releases/latest">the download page</a> (or scan the box QR),
+        get the installer for your system, and run it. When it finishes, a small
+        <strong>cup icon</strong> appears in your
+        <span class="os-block on" data-os="win" style="display:inline">system tray, bottom-right</span><span class="os-block" data-os="mac">menu bar, top-right</span>.</p>
+        <div class="os-block on" data-os="win">
+          <div class="callout"><strong>Windows will warn you first.</strong> You'll see
+          &ldquo;Windows protected your PC&rdquo; with an <em>unknown publisher</em>. That is
+          expected: KopiMeter is a small independent project and the installer isn't
+          code-signed. Click <strong>More info</strong>, then <strong>Run anyway</strong>. If
+          you'd rather check the download first, compare it against
+          <code>SHA256SUMS.txt</code> on the download page.</div>
+        </div>
+        <div class="callout"><strong>The app must stay running</strong> — it's what talks to
+        Anthropic and feeds your device over Bluetooth. It starts by itself when you sign in;
+        leave it there and forget it.</div>
+        <button class="markdone">Mark done</button>
+      </div>
+      <div class="visual">
+        <div class="mockwin anim" aria-hidden="true">
+          <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div class="body">
+            <span style="font-weight:700">KopiMeter Setup</span>
+            <div class="track"><i></i></div>
+            <div class="trayline"><svg class="traycup" viewBox="0 0 11 10" shape-rendering="crispEdges"><g class="markcopy"></g></svg> appears in your tray</div>
+          </div>
+        </div>
+        <p class="vlabel">one installer, no questions</p>
+      </div>
+    </div>
+
+    <div class="step reveal" data-step="3" data-done="0">
+      <div class="stepnum"><span class="n">3</span><span class="chk">✓</span></div>
+      <div class="step-body">
+        <h3>Pair over Bluetooth</h3>
+        <p>Pair it the way you'd pair headphones — once.</p>
+        <div class="os-block on" data-os="win">
+          <p class="oslabel">Windows</p>
+          <p>Settings → Bluetooth &amp; devices → Add device → Bluetooth → choose <strong>KopiMeter</strong>.</p>
+        </div>
+        <div class="os-block" data-os="mac">
+          <p class="oslabel">macOS</p>
+          <p>System Settings → Bluetooth → find <strong>KopiMeter</strong> → Connect.</p>
+        </div>
+        <p style="color:var(--muted); font-size:.92rem">Pairing also enables the two shortcut buttons on the device.</p>
+        <button class="markdone">Mark done</button>
+      </div>
+      <div class="visual">
+        <div class="card bt anim" aria-hidden="true">
+          <div class="node"><div class="laptop"></div>your computer</div>
+          <div class="waves"><i></i><i></i><i></i></div>
+          <div class="node"><div class="meter"></div>KopiMeter</div>
+        </div>
+        <p class="vlabel">a one-time handshake</p>
+      </div>
+    </div>
+
+    <div class="step reveal" data-step="4" data-done="0">
+      <div class="stepnum"><span class="n">4</span><span class="chk">✓</span></div>
+      <div class="step-body">
+        <h3>Connect your Claude account</h3>
+        <p>KopiMeter never asks for your Claude password. It reads the sign-in Claude Code
+        already stores on your computer — so you sign in there once, with Anthropic's own
+        command. Open
+        <span class="os-block on" data-os="win" style="display:inline"><strong>PowerShell</strong></span><span class="os-block" data-os="mac"><strong>Terminal</strong></span>
+        and run:</p>
+        <div class="cmd">
+          <pre class="cmd-pre"><code>claude login</code></pre>
+          <button class="copy" data-copy="claude login">Copy</button>
+        </div>
+        <p>A browser window opens — sign in with the same account you use in the Claude app,
+        then close the terminal.</p>
+        <div class="callout"><strong>Once, ever.</strong> KopiMeter keeps the sign-in fresh by
+        itself. You'd only repeat this if you log out of Claude or change your password.</div>
+        <button class="markdone">Mark done</button>
+      </div>
+      <div class="visual">
+        <div class="term anim" aria-hidden="true">
+          <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <div class="line"><span class="prompt">&gt;&nbsp;</span><span class="typed">claude login</span><span class="caret"></span></div>
+          <div class="ok">✓ signed in — you can close this window</div>
+        </div>
+        <p class="vlabel">30 seconds, once</p>
+      </div>
+    </div>
+
+    <div class="step reveal" data-step="5" data-done="0">
+      <div class="stepnum"><span class="n">5</span><span class="chk">✓</span></div>
+      <div class="step-body">
+        <h3>Personalise it from your phone</h3>
+        <p>Click the cup icon in your tray → <strong>Open setup page</strong>. Two green badges
+        mean everything works: <strong>Claude Code login</strong> and <strong>Device</strong>.
+        Scan the QR at the bottom of that page with your phone (same Wi-Fi) and it opens there,
+        already signed in — nothing to type.</p>
+        <p>Set the <strong>fresh-pot chime</strong> (off by default) and the
+        <strong>clock</strong> (enables the standby face and night dimming) if you want them.</p>
+        <div class="callout">Within seconds of the badges going green, the glass on your desk
+        fills to your real level. That's setup done.</div>
+        <button class="markdone">Mark done</button>
+      </div>
+      <div class="visual">
+        <div class="phone" aria-hidden="true"><div class="pscreen">
+          <span class="badge">LOGIN ✓</span>
+          <span class="badge">DEVICE ✓</span>
+          <img class="qr-mini" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOgAAADoAQAAAADN0pXVAAABSElEQVR4nO2YwW7DMAxDH4f+/y9zB0mZsUMOU5NoRgu0SMyDyVqRyMicfL7OwA/6D1BcB2zANuZY8UzOHfRFKEVYFnGbK0M5d/UiMAgZgVwrQzm/CTWgB/Z9GvUpet2+t6AvKIWyZBn50DyTc1fvTxFb1lrWMzk39a4D6dfVTM5NVAiQwDIWoFwdy7mDGiNshUxCrvUsq0tRWQKiV4Xn0rbzV+GqZFKxhMJWjuX8Z1SHmczurKjugGZy7upVzl9cz23Yyx31Rj6yyVxk4+N+w3yU9RwRISvaFReGcm7qDaHx4/JW0apncu6fb1zC4SjzO5Nz00+mWQ7bASx/wkzO3bxQI4mq54398/J+gxzCecp7Pr8rminB4SensLoMlYXlyL/RtwewejO6vN9wmmZZ5T5mcu7qra6cA5iKDTvOo2X+3rrvB70H/QZPAYa+Io9//gAAAABJRU5ErkJggg==" alt="">
+        </div></div>
+        <p class="vlabel">the step-5 QR — made on your computer</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head reveal">
+      <p class="eyebrow">Day to day</p>
+      <h2>Three screens, one glance</h2>
+      <p class="sub"><strong>Swipe</strong> between Usage and History; <strong>tap</strong>
+      (or the middle button) visits the glass. The left and right buttons send Claude Code
+      shortcuts to your computer — harmless if you don't use them.</p>
+    </div>
+    <div class="screens">
+      <div class="device reveal">
+        <div class="htmlscreen" aria-label="The usage screen">
+          <div class="mockline">SESSION <b>62%</b> · fresh pot 2h 14m</div>
+          <div class="mockbar"><i style="--w:.62"></i></div>
+          <div class="mockline" style="margin-top:6px">WEEK <b>81%</b> · resets Mon</div>
+          <div class="mockbar warn"><i style="--w:.81"></i></div>
+          <div class="mockline" style="margin-top:8px">status · active</div>
+        </div>
+        <div class="cap"><b>USAGE</b> · the exact numbers (default)</div>
+      </div>
+      <div class="device reveal" style="--d:60ms">
+        <div class="htmlscreen" aria-label="The history screen">
+          <svg class="spark" viewBox="0 0 100 40" preserveAspectRatio="none">
+            <polyline points="0,34 10,32 18,33 26,28 34,25 42,26 50,18 58,20 66,14 74,15 82,9 92,11 100,6" stroke="#6B4423"/>
+            <polyline points="0,38 20,37 40,36 60,33 80,31 100,28" stroke="#FFB03A"/>
+          </svg>
+          <div class="mockline">last 24h · <b style="font-size:.66rem;color:#6B4423">▬</b> session · <b style="font-size:.66rem;color:#B06A18">▬</b> week</div>
+        </div>
+        <div class="cap"><b>HISTORY</b> · your last 24 hours</div>
+      </div>
+      <div class="device reveal" style="--d:120ms">
+        <div class="screenbox"><canvas width="40" height="40" data-scene="idle" aria-label="The glass screen"></canvas></div>
+        <div class="cap"><b>KOPI</b> · the glass, live</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head reveal">
+      <p class="eyebrow">The glass</p>
+      <h2>Read it before the numbers</h2>
+      <p class="sub">Live recreations of the real display — not video of it.</p>
+    </div>
+    <div class="demos">
+      <div class="demo reveal">
+        <div class="device small"><div class="screenbox">
+          <canvas width="40" height="40" data-scene="drain" aria-label="Demo: the level draining"></canvas>
+        </div><div class="cap" data-capfor="drain">POT 100%</div></div>
+        <div class="dcap"><h3>The level is your session</h3>
+        <p>The glass drains as you use Claude. When the foam line turns amber you've used 80%.</p></div>
+      </div>
+      <div class="demo reveal" style="--d:60ms">
+        <div class="device small"><div class="screenbox">
+          <canvas width="40" height="40" data-scene="pace" aria-label="Demo: steam and pace"></canvas>
+        </div><div class="cap" data-capfor="pace">BREWING KOPI</div></div>
+        <div class="dcap"><h3>Steam is your pace</h3>
+        <p>One wisp at rest, two while you work, three when you're really brewing — and the
+        kopi darkens. Density, never speed: it won't pull your eye mid-thought.</p></div>
+      </div>
+      <div class="demo reveal" style="--d:120ms">
+        <div class="device small"><div class="screenbox">
+          <canvas width="40" height="40" data-scene="pour" aria-label="Demo: the pour at reset"></canvas>
+        </div><div class="cap" data-capfor="pour">FRESH POT</div></div>
+        <div class="dcap"><h3>The pour is your reset</h3>
+        <p>When your 5-hour window rolls over, the pot tips in and refills the glass — with a
+        chime if you enabled it. A spoon dings the rim when Claude finishes a task.</p></div>
+      </div>
+      <div class="demo reveal" style="--d:180ms">
+        <div class="device small"><div class="screenbox">
+          <canvas width="40" height="40" data-scene="night" aria-label="Demo: the night lid"></canvas>
+        </div><div class="cap">CLOSED FOR THE NIGHT</div></div>
+        <div class="dcap"><h3>Lid on at night</h3>
+        <p>Away a while? The saucer goes on and the screen dims to a drifting clock. At 95% the
+        border goes solid ink; when the session is spent it's <strong>pot kosong</strong> — the
+        glass over on its side. Nothing ever flashes.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head reveal">
+      <p class="eyebrow">If something looks wrong</p>
+      <h2>Troubleshooting</h2>
+      <p class="sub">The app names its own problem — hover the tray icon for status, then open the match.</p>
+    </div>
+    <div class="tlist reveal">
+      <details><summary>The device shows Waiting or Listening</summary>
+        <div class="ans"><p class="means">The device is on, but the app isn't sending anything.</p>
+        <p>Check the cup icon is in your tray. If it isn't, open KopiMeter from the Start menu or Applications folder.</p></div></details>
+      <details><summary>The tray says Scanning and stays there</summary>
+        <div class="ans"><p class="means">The app can't find your device.</p>
+        <p>Check it's powered and nearby. Still stuck? Remove it in Bluetooth settings and pair again.</p></div></details>
+      <details><summary>The tray says "token expired — run claude login"</summary>
+        <div class="ans"><p class="means">Your Claude sign-in was revoked — usually a log-out or password change.</p>
+        <p>Open a terminal, run <code>claude login</code> once, close it.</p></div></details>
+      <details><summary>The screen is blank</summary>
+        <div class="ans"><p class="means">No power, or the display is asleep.</p>
+        <p>Reseat the USB-C cable, then tap the screen or press the middle button.</p></div></details>
+      <details><summary>History says "Collecting data…"</summary>
+        <div class="ans"><p class="means">Nothing's wrong — there isn't enough history yet.</p>
+        <p>Leave it running; the line fills in over the first hour.</p></div></details>
+    </div>
+    <p class="reveal" style="color:var(--muted); font-size:.93rem; margin-top:14px">Still stuck? <a href="https://github.com/huachong95/kopimeter-downloads/issues/new">Open an issue</a> with what the tray
+    icon says — that's usually enough to solve it in one reply.</p>
+  </section>
+
+  <section>
+    <div class="sec-head reveal">
+      <p class="eyebrow">Privacy</p>
+      <h2>What leaves your computer</h2>
+    </div>
+    <div class="card privacy-grid reveal">
+      <p><strong>Your Claude login never does.</strong> It stays in the file Claude Code created on your machine. The app reads it to make its own check — never uploaded, never shown on the setup page, never logged.</p>
+      <p><strong>Your prompts and conversations are never touched.</strong> KopiMeter has no access to them.</p>
+      <p><strong>Once a minute, one tiny request goes to Anthropic</strong> and the reply's limit headers are read. It's as small as a request can be, but it does count as activity on your account.</p>
+      <p><strong>Your usage numbers go to the device over Bluetooth</strong> and nowhere else. No KopiMeter account, no cloud, no telemetry.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head reveal">
+      <p class="eyebrow">Questions</p>
+      <h2>Common questions</h2>
+    </div>
+    <div class="reveal">
+      <details><summary>Do I have to use Claude Code? I only use the Claude app.</summary>
+        <div class="ans"><p>Only for the one-time sign-in in step 4. Your limits are shared across the Claude app, the web, and Claude Code, so chatting in the app moves the glass the same way.</p></div></details>
+      <details><summary>Does it work if my computer is asleep or off?</summary>
+        <div class="ans"><p>No — the app fetches the numbers. While the computer sleeps the device keeps showing the last level it received, and catches up within a minute of waking.</p></div></details>
+      <details><summary>Can I use it with more than one computer?</summary>
+        <div class="ans"><p>Pair it with whichever machine you work on. One at a time; to move it, pair with the new machine and install the app there.</p></div></details>
+      <details><summary>Does it need Wi-Fi?</summary>
+        <div class="ans"><p>The device doesn't — it uses Bluetooth to your computer. Your computer needs internet, which it already has.</p></div></details>
+      <details><summary>Why does my usage sometimes jump?</summary>
+        <div class="ans"><p>Limits are reported by Anthropic for your whole account — a long session in the browser shows up in the glass too.</p></div></details>
+      <details><summary>How do I turn the chime on or off?</summary>
+        <div class="ans"><p>Tray icon → Open setup page → the fresh-pot chime toggle. It's off by default.</p></div></details>
+    </div>
+  </section>
+
+  <footer class="legal reveal">
+    <p>KopiMeter is an independent product. It is not affiliated with, endorsed by, or sponsored by Anthropic. Claude and Claude Code are trademarks of Anthropic, PBC.</p>
+    <p>KopiMeter · <a href="https://github.com/huachong95/kopimeter-downloads/releases/latest">Downloads</a> · <a href="https://github.com/huachong95/kopimeter-downloads/issues">Support</a></p>
+  </footer>
+</div>
+
+<!-- docked companion: mirrors the step you're reading -->
+<aside class="dock" id="dock" aria-hidden="true">
+  <div class="device">
+    <div class="screenbox"><canvas width="40" height="40" data-scene="dock"></canvas></div>
+    <div class="cap" id="dockCap">WAITING</div>
+  </div>
+  <div class="prog" id="dockProg"><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="docklabel" id="dockLabel">step 1 of 5</div>
+</aside>
+
+<script>
+(function () {
+  "use strict";
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var store = { get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+                set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+
+  /* ---- brand mark ---- */
+  var ROWS = ["....t......",".....t.....","....t......",".ikkkkkki..",".ippppppii.",".ippppppi.i",".ippppppii.","..ippppi...",".sssssssss.","..iiiiiii.."];
+  var MI = { i: "#111318", k: "#6B4423", p: "#FFFFFF", s: "#EDE7D9", t: "#B9B2A4" };
+  function drawMark(g) {
+    var o = "";
+    for (var y = 0; y < ROWS.length; y++) for (var x = 0; x < 11; x++) {
+      var c = MI[ROWS[y][x]];
+      if (c) o += '<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+c+'"/>';
+    }
+    g.innerHTML = o;
+  }
+  drawMark(document.getElementById("mark"));
+  Array.prototype.forEach.call(document.querySelectorAll(".markcopy"), drawMark);
+
+  /* ---- pixel engine: the firmware's own renderer ---- */
+  var N = 40, TOP = 12, BOT = 33, CX = 19.5;
+  var PAPER="#FAF8F4", INK="#111318", GLASS="#E2E8EB", GHI="#F2F6F8",
+      KOPI="#6B4423", GAO="#452A10", MILK="#E8D5A3", FOAM="#D6B68A",
+      STEAM="#B9B2A4", AMBER="#FFB03A", WHITE="#FFFFFF", POT="#2A2620", SAUCER="#EDE7D9";
+  function half(y) { return 9.5 - 1.8 * (y - TOP) / (BOT - TOP); }
+
+  function Scene(cv) { this.cv = cv; this.ctx = cv.getContext("2d"); this.px = new Array(N * N); this.vis = true; }
+  Scene.prototype.clear = function () { this.px.fill(PAPER); };
+  Scene.prototype.put = function (y, x, c) {
+    y = Math.round(y); x = Math.round(x);
+    if (y >= 0 && y < N && x >= 0 && x < N) this.px[y * N + x] = c;
+  };
+  Scene.prototype.span = function (y, a, b, c) { for (var x = Math.round(a); x <= Math.round(b); x++) this.put(y, x, c); };
+  Scene.prototype.glass = function (o) {
+    o = o || {};
+    var lvl = (o.level == null ? 82 : o.level) / 100, dark = o.dark ? GAO : KOPI;
+    var liq = BOT - (BOT - TOP - 2) * lvl, milk = BOT - (BOT - TOP) * .15;
+    for (var y = TOP + 1; y < BOT; y++) {
+      var h = half(y) - 1.4;
+      for (var x = Math.round(CX - h); x <= Math.round(CX + h); x++) {
+        if (lvl > 0 && y >= liq) this.put(y, x, y >= milk ? MILK : dark); else this.put(y, x, GHI);
+      }
+    }
+    if (lvl > .02) { var fh = half(liq) - 1.4; this.span(Math.round(liq), CX - fh, CX + fh, lvl <= .2 ? AMBER : FOAM); }
+    for (var y2 = TOP; y2 <= BOT; y2++) {
+      var h2 = half(y2);
+      this.put(y2, CX - h2, INK); this.put(y2, CX + h2, INK);
+      this.put(y2, CX - h2 + 1, GLASS); this.put(y2, CX + h2 - 1, GLASS);
+    }
+    this.span(TOP, CX - half(TOP), CX + half(TOP), INK);
+    this.span(BOT, CX - half(BOT), CX + half(BOT), INK);
+    this.span(BOT + 2, CX - half(BOT) - 1, CX + half(BOT) + 1, INK);
+    for (var ys = TOP + 3; ys < BOT - 3; ys += 2) this.put(ys, CX - half(ys) + 2, WHITE);
+    if (o.lid) {
+      this.span(TOP - 1, CX - half(TOP) - 2, CX + half(TOP) + 2, SAUCER);
+      this.span(TOP - 2, CX - half(TOP) - 2, CX + half(TOP) + 2, INK);
+    }
+    return liq;
+  };
+  Scene.prototype.steam = function (now, w, o) {
+    o = o || {};
+    var y1 = TOP - 1, y0 = Math.round(N * (o.top || .11));
+    var offs = { 1: [0], 2: [-4, 4], 3: [-5, 0, 5] }[w] || [0];
+    for (var i = 0; i < offs.length; i++) for (var y = y0; y < y1; y++) {
+      var t = (y1 - y) / (y1 - y0);
+      this.put(y, CX + offs[i] + Math.sin(t * 3 + now / 520 + i * 1.7) * 1.4 * (.4 + t) + (o.lean || 0) * 1.6 * t, STEAM);
+    }
+  };
+  Scene.prototype.pot = function (liq) {
+    var py = 2, pxo = 26;
+    for (var y = py; y < py + 7; y++) this.span(y, pxo, pxo + 11, POT);
+    this.span(py - 1, pxo + 2, pxo + 9, POT);
+    this.put(py - 2, pxo + 5, AMBER); this.put(py - 2, pxo + 6, AMBER);
+    for (var j = 0; j < 6; j++) { this.put(py + 3 + j * .9, pxo - 1 - j * .45, POT); this.put(py + 4 + j * .9, pxo - 1 - j * .45, POT); }
+    for (var sy = py + 8; sy < liq; sy++) {
+      this.put(sy, CX - .5, KOPI); this.put(sy, CX + .5, KOPI);
+      if (sy % 4 === 0) this.put(sy, CX + 1.5, AMBER);
+    }
+    this.put(liq - 1, CX - 3, FOAM); this.put(liq - 1, CX + 3, FOAM);
+  };
+  Scene.prototype.ripple = function (t, lvl) {
+    var liq = Math.round(BOT - (BOT - TOP - 2) * lvl / 100), maxR = half(liq) - 2;
+    for (var k = 0; k < 3; k++) {
+      var r = (t * 1.35 - k * .22) * maxR;
+      if (r > 0 && r <= maxR) { this.put(liq, CX - r, WHITE); this.put(liq, CX + r, WHITE); }
+    }
+  };
+  Scene.prototype.zzz = function (now) {
+    var p = Math.floor(now / 800) % 3;
+    this.span(6 - p, 27 + p, 29 + p, STEAM); this.put(7 - p, 28 + p, STEAM); this.span(8 - p, 27 + p, 29 + p, STEAM);
+  };
+  Scene.prototype.paint = function () {
+    var img = this.ctx.createImageData(N, N);
+    for (var i = 0; i < N * N; i++) {
+      var c = this.px[i];
+      img.data[i*4] = parseInt(c.slice(1,3),16);
+      img.data[i*4+1] = parseInt(c.slice(3,5),16);
+      img.data[i*4+2] = parseInt(c.slice(5,7),16);
+      img.data[i*4+3] = 255;
+    }
+    this.ctx.putImageData(img, 0, 0);
+  };
+
+  var heroRipple = -1, caps = {};
+  Array.prototype.forEach.call(document.querySelectorAll("[data-capfor]"), function (el) { caps[el.dataset.capfor] = el; });
+  var dockCap = document.getElementById("dockCap");
+  var dockState = { step: 1 };
+
+  var SCENES = {
+    hero: function (s, now) {
+      var T = now % 16000;
+      s.clear();
+      if (T < 12000) { s.glass({ level: 82 }); s.steam(now, 1); }
+      else { var t = (T - 12000) / 4000; var liq = s.glass({ level: 40 + 60 * t }); s.steam(now, 1); s.pot(liq); }
+      if (heroRipple > 0) { var rt = (now - heroRipple) / 800; if (rt < 1) s.ripple(rt, 82); else heroRipple = -1; }
+      s.paint();
+    },
+    waiting: function (s, now) { s.clear(); s.glass({ level: 0 }); s.steam(now, 1, { top: .2 }); s.paint(); },
+    idle:    function (s, now) { s.clear(); s.glass({ level: 74 }); s.steam(now, 1); s.paint(); },
+    drain:   function (s, now) {
+      var lvl = Math.max(4, 100 - (now % 14000) / 14000 * 110);
+      s.clear(); s.glass({ level: lvl }); s.steam(now, lvl > 30 ? 1 : 0); s.paint();
+      if (caps.drain) caps.drain.textContent = "POT " + Math.round(lvl) + "%" + (lvl <= 20 ? " · MIND THE POT" : "");
+    },
+    pace:    function (s, now) {
+      var st = Math.floor(now / 3500) % 3;
+      s.clear(); s.glass({ level: 60, dark: st === 2 }); s.steam(now, st + 1); s.paint();
+      if (caps.pace) caps.pace.textContent = ["BREWING PO", "BREWING KOPI", "BREWING GAO"][st];
+    },
+    pour:    function (s, now) {
+      var T = now % 9000; s.clear();
+      if (T < 3000) { s.glass({ level: 18 }); s.steam(now, 1); if (caps.pour) caps.pour.textContent = "POT 18% · FRESH POT SOON"; }
+      else if (T < 7500) { var t = (T - 3000) / 4500; var liq = s.glass({ level: 18 + 82 * t }); s.steam(now, 1); s.pot(liq); if (caps.pour) caps.pour.textContent = "FRESH POT — POURING…"; }
+      else { s.glass({ level: 100 }); s.steam(now, 1); if (caps.pour) caps.pour.textContent = "POT 100%"; }
+      s.paint();
+    },
+    night:   function (s, now) { s.clear(); s.glass({ level: 66, lid: true }); s.zzz(now); s.paint(); },
+    /* the companion: shows what YOUR device should look like at the step you're reading.
+       Steps 1-4 the device has no data yet — it waits. Step 5 is where it fills. */
+    dock:    function (s, now) {
+      s.clear();
+      if (dockState.step < 5) { s.glass({ level: 0 }); s.steam(now, 1, { top: .2 }); if (dockCap) dockCap.textContent = "WAITING"; }
+      else {
+        var t = Math.min(1, (now % 8000) / 4000);
+        var lvl = 82 * t;
+        var liq = s.glass({ level: lvl }); s.steam(now, 1);
+        if (t < 1) { s.pot(liq); if (dockCap) dockCap.textContent = "FILLING…"; }
+        else if (dockCap) dockCap.textContent = "POT 82%";
+      }
+      s.paint();
+    }
+  };
+
+  var scenes = [];
+  Array.prototype.forEach.call(document.querySelectorAll("canvas[data-scene]"), function (cv) {
+    var s = new Scene(cv); s.script = SCENES[cv.dataset.scene]; scenes.push(s);
+    if (reduce && s.script) s.script(s, 1200);
+  });
+
+  if (!reduce) {
+    var vo = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        for (var i = 0; i < scenes.length; i++) if (scenes[i].cv === e.target) scenes[i].vis = e.isIntersecting;
+      });
+    }, { rootMargin: "80px" });
+    scenes.forEach(function (s) { vo.observe(s.cv); });
+    (function loop(now) {
+      for (var i = 0; i < scenes.length; i++) if (scenes[i].vis && scenes[i].script) scenes[i].script(scenes[i], now);
+      requestAnimationFrame(loop);
+    })(performance.now());
+  }
+
+  /* ---- hero tap: ripple + the peek chit ---- */
+  var hero = document.getElementById("heroDevice"), chit = document.getElementById("heroChit"), ct = null;
+  if (hero && chit) hero.addEventListener("click", function () {
+    heroRipple = performance.now();
+    chit.innerHTML = "SESSION <b>82%</b> · fresh pot 4h 06m<br>WEEK <b>68%</b> · resets Mon";
+    chit.classList.add("show");
+    clearTimeout(ct); ct = setTimeout(function () { chit.classList.remove("show"); }, 2600);
+    if (reduce) { var s = scenes.filter(function (x) { return x.cv.dataset.scene === "hero"; })[0]; if (s) s.script(s, performance.now()); }
+  });
+
+  /* ---- platform switcher ---- */
+  var osKey = "km.os", curOS = store.get(osKey) || "win";
+  function applyOS(os) {
+    curOS = os; store.set(osKey, os);
+    Array.prototype.forEach.call(document.querySelectorAll(".osswitch button"), function (b) {
+      b.setAttribute("aria-pressed", b.dataset.os === os ? "true" : "false");
+    });
+    Array.prototype.forEach.call(document.querySelectorAll(".os-block"), function (el) {
+      var on = el.dataset.os === os;
+      el.classList.toggle("on", on);
+      if (el.style.display === "inline" || el.tagName === "SPAN") el.style.display = on ? "inline" : "none";
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".osswitch button"), function (b) {
+    b.addEventListener("click", function () { applyOS(b.dataset.os); });
+  });
+  applyOS(curOS);
+
+  /* ---- copy buttons ---- */
+  Array.prototype.forEach.call(document.querySelectorAll(".copy"), function (b) {
+    b.addEventListener("click", function () {
+      var text = b.dataset.copy;
+      var done = function () {
+        b.dataset.copied = "1"; b.textContent = "Copied";
+        setTimeout(function () { b.dataset.copied = "0"; b.textContent = "Copy"; }, 1600);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done);
+      else done();
+    });
+  });
+
+  /* ---- step progress, persisted ---- */
+  var steps = Array.prototype.slice.call(document.querySelectorAll(".step"));
+  var doneKey = "km.done", doneCount = document.getElementById("doneCount");
+  var dockProg = document.getElementById("dockProg"), dockLabel = document.getElementById("dockLabel");
+  function readDone() { try { return JSON.parse(store.get(doneKey) || "{}"); } catch (e) { return {}; } }
+  var done = readDone();
+  function render() {
+    var n = 0;
+    steps.forEach(function (st) {
+      var id = st.dataset.step, is = !!done[id];
+      st.dataset.done = is ? "1" : "0";
+      var btn = st.querySelector(".markdone");
+      if (btn) btn.textContent = is ? "Done ✓" : "Mark done";
+      if (is) n++;
+    });
+    if (doneCount) doneCount.innerHTML = "<b>" + n + "</b> of 5 done";
+    if (dockProg) Array.prototype.forEach.call(dockProg.children, function (el, i) {
+      el.className = done[String(i + 1)] ? "done" : (i + 1 === dockState.step ? "here" : "");
+    });
+    store.set(doneKey, JSON.stringify(done));
+  }
+  steps.forEach(function (st) {
+    var btn = st.querySelector(".markdone");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var id = st.dataset.step;
+      if (done[id]) delete done[id]; else done[id] = 1;
+      render();
+    });
+  });
+  render();
+
+  /* ---- docked companion follows the step in view ---- */
+  var dock = document.getElementById("dock");
+  if (dock && !reduce) {
+    var stepObs = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        dockState.step = parseInt(e.target.dataset.step, 10) || 1;
+        if (dockLabel) dockLabel.textContent = "step " + dockState.step + " of 5";
+        render();
+      });
+    }, { rootMargin: "-45% 0px -45% 0px" });
+    steps.forEach(function (s) { stepObs.observe(s); });
+
+    var sect = document.getElementById("steps");
+    if (sect) new IntersectionObserver(function (es) {
+      es.forEach(function (e) { dock.classList.toggle("show", e.isIntersecting); dock.setAttribute("aria-hidden", e.isIntersecting ? "false" : "true"); });
+    }, { rootMargin: "-80px 0px -120px 0px" }).observe(sect);
+  }
+
+  /* ---- step visuals only animate while on screen ---- */
+  if (!reduce) {
+    var animObs = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { e.target.classList.toggle("playing", e.isIntersecting); });
+    }, { rootMargin: "40px" });
+    Array.prototype.forEach.call(document.querySelectorAll(".anim"), function (el) { animObs.observe(el); });
+  } else {
+    Array.prototype.forEach.call(document.querySelectorAll(".anim"), function (el) { el.classList.add("playing"); });
+  }
+
+  /* ---- scroll reveals, fired once ---- */
+  var rv = document.querySelectorAll(".reveal");
+  if (reduce) Array.prototype.forEach.call(rv, function (el) { el.classList.add("in"); });
+  else {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+      /* threshold 0, not a fraction: an element taller than the viewport can
+         never satisfy a fractional threshold, so it would never reveal. */
+    }, { threshold: 0, rootMargin: "0px 0px -60px 0px" });
+    Array.prototype.forEach.call(rv, function (el) { io.observe(el); });
+    /* Safety net: a reveal must never be able to strand content. An element
+       taller than the viewport never reaches threshold .18, and printing or
+       Reader mode bypasses scrolling entirely — so anything still hidden a
+       moment after load gets shown regardless. */
+    window.setTimeout(function () {
+      Array.prototype.forEach.call(rv, function (el) {
+        if (!el.classList.contains("in")) {
+          var r = el.getBoundingClientRect();
+          if (r.top < window.innerHeight && r.bottom > 0) el.classList.add("in");
+        }
+      });
+    }, 1200);
+    window.addEventListener("beforeprint", function () {
+      Array.prototype.forEach.call(rv, function (el) { el.classList.add("in"); });
+    });
+  }
+})();
+</script>

@@ -1,0 +1,118 @@
+# Cutting a release into this repo
+
+This repo is the customer-facing half of KopiMeter. The source lives in the
+private `huachong95/KopiMeter` repo; nothing but shippable artefacts and the
+guide belongs here.
+
+Two things get published, and they are independent:
+
+| What | How it gets here | How often |
+|---|---|---|
+| `index.html` (the set-up guide) | `tools/publish-downloads.sh` in the source repo, then commit | whenever the guide changes |
+| `KopiMeterSetup-<version>.exe` + `SHA256SUMS.txt` | attached to a GitHub **Release** — never committed to the tree | per version |
+
+Binaries are release assets, not tracked files. A committed `.exe` bloats
+every future clone forever and cannot be replaced without rewriting history.
+
+---
+
+## 1. Build the installer (on Windows)
+
+From a checkout of the **source** repo, on a real Windows machine — PyInstaller
+only produces executables for the OS it runs on, so WSL will not do:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File packaging\build-windows.ps1
+```
+
+That gates itself: it refuses to package if the test suite fails, and refuses
+if the built exe fails `--selftest`. It writes, in order:
+
+- `dist\KopiMeter.exe`
+- `dist\KopiMeterSetup-<version>.exe`
+- `dist\SHA256SUMS.txt` — generated **last**, covering only that run's
+  artefacts
+
+Then walk the customer path yourself on a machine **without Python installed**
+(a fresh VM or Windows Sandbox); a dev box hides missing-dependency bugs
+because the dependencies are already there. See `packaging/README.md`.
+
+## 2. Publish the release
+
+```
+Tag:   v<version>              e.g. v0.1.0
+Title: KopiMeter <version>
+```
+
+Attach both files from `dist\`:
+
+- `KopiMeterSetup-<version>.exe`
+- `SHA256SUMS.txt`
+
+**Also paste the contents of `SHA256SUMS.txt` into the release notes.** This is
+not redundancy for its own sake: a checksum served from the same place as the
+binary is verified by whatever served the binary, so anyone who can replace one
+can replace the other. Release notes live in GitHub's database rather than in
+object storage, so the two would have to be breached separately. With the
+installer unsigned, this is the only integrity control the product has.
+
+Never retype a hash by hand. A mistyped digest sends a customer who followed
+the instructions a false alarm, which teaches everyone to skip the step.
+
+### Release-notes template
+
+```markdown
+KopiMeter <version> for Windows.
+
+**[Set-up guide](https://huachong95.github.io/kopimeter-downloads/)** — about
+ten minutes, keeps your place as you go.
+
+Windows will show "Windows protected your PC" with an unknown publisher.
+That is expected: this is a small independent project and the installer is not
+code-signed. Click **More info** → **Run anyway**, or verify the download
+against the checksum below first.
+
+### SHA256
+```
+<paste SHA256SUMS.txt verbatim>
+```
+
+KopiMeter is an independent product. It is not affiliated with, endorsed by,
+or sponsored by Anthropic.
+```
+
+## 3. Update the guide, if it changed
+
+From the source repo:
+
+```bash
+tools/publish-downloads.sh /path/to/kopimeter-downloads
+cd /path/to/kopimeter-downloads
+git add index.html && git commit -m "Update guide for <version>" && git push
+```
+
+The script refuses to publish if the guide gained an external asset reference
+(it must stay one self-contained file) or if its QR code stops encoding the
+Pages URL.
+
+---
+
+## One-time setup
+
+**GitHub Pages must be enabled** or the QR printed on the box card leads
+nowhere: *Settings → Pages → Source: Deploy from a branch → `main` / `/ (root)`*.
+The guide is then served at
+`https://huachong95.github.io/kopimeter-downloads/`.
+
+`.nojekyll` is committed so Pages serves the file as-is instead of running it
+through Jekyll.
+
+## Filenames and links
+
+The installer filename carries its version (`KopiMeterSetup-0.1.0.exe`), so
+there is **no** stable `releases/latest/download/KopiMeterSetup.exe` URL —
+that permalink form only works for a fixed filename. Everything that points a
+customer at the download uses `releases/latest`, the page, which always
+resolves. If you ever want a fixed-name permalink, drop the version from
+`OutputBaseFilename` in `packaging/installer.iss` first; don't add the link and
+hope.
