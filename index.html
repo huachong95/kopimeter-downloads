@@ -1,3 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- Without this the page lays out at ~980px on a phone and is then zoomed out
+     to fit, so every media query below evaluates against the wrong width and
+     the whole responsive design never engages. It is the single line that
+     decides whether this guide works on the device most customers will open
+     it on — they get here by scanning a QR code with a phone. -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Set up KopiMeter: a desk meter for your Claude Code allowance. Five steps, about ten minutes.">
 <title>KopiMeter Quick Start</title>
 <script>document.documentElement.className += " js";</script>
 <style>
@@ -300,21 +312,97 @@
   .phone .qr-mini { width: 72px; height: 72px; border-radius: 6px; }
 
   /* ===== screens + demos ===== */
-  .screens, .demos { display: grid; grid-template-columns: repeat(auto-fit, minmax(212px, 1fr)); gap: 18px; }
-  .htmlscreen { padding: 16px 14px; display: flex; flex-direction: column; justify-content: center; gap: 10px; overflow: hidden; }
-  .mockline { font-family: ui-monospace, Menlo, monospace; font-size: .66rem; color: #857E6E; letter-spacing: .04em; }
-  .mockline b { color: #16130D; font-size: .85rem; }
-  .mockbar { height: 10px; border-radius: 6px; background: #E4DECF; overflow: hidden; }
-  .mockbar i {
-    display: block; height: 100%; border-radius: 6px; background: #FFB03A;
+  /* 240px, not 212: the screen recreations below are sized in cqw, so their
+     smallest text scales with the tile. At 212px a tablet packs three across
+     at 191px each and the eyebrow row lands at ~6px — present but unreadable,
+     which is worse than wrapping to two rows. 240 forces the wrap and holds
+     the floor at ~8px. */
+  .screens, .demos { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+
+  /* ===== screen recreations =====
+     These reproduce the real 480x480 panel, and every measurement below is
+     the firmware's own value converted to a percentage of that width — the
+     20px margin in compute_layout() is 4.167cqw, font_sans_48 is 10cqw, and
+     so on. cqw (percent of this element's width) rather than rem is what
+     makes them proportional: the screen is square and scales with the device
+     frame, so a recreation sized in rem drifts out of proportion the moment
+     the column width changes, which is exactly what happens between a laptop
+     three-up grid and a stacked phone.
+     Palette is firmware/src/theme.h verbatim. Deliberately NOT themed for
+     dark mode — the hardware's panel does not change colour, and a guide that
+     showed it inverted would be showing something the customer never sees. */
+  .htmlscreen {
+    container-type: inline-size;
+    position: relative; overflow: hidden;
+    font-family: ui-sans-serif, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-variant-numeric: tabular-nums;
+    color: #111318;
+  }
+  .scr-head {
+    position: absolute; left: 0; right: 0; top: 6.25cqw; height: 12cqw;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .scr-mark { position: absolute; left: 4.167cqw; width: 8.5cqw; height: 7.7cqw; }
+  .scr-batt {
+    position: absolute; right: 4.167cqw; width: 8cqw; height: 4.4cqw;
+    border: .55cqw solid #8A8578; border-radius: 1.1cqw;
+  }
+  .scr-batt::after {
+    content: ""; position: absolute; inset: .7cqw; right: 2.2cqw;
+    background: #8A8578; border-radius: .3cqw;
+  }
+  .scr-clock { font-size: 10cqw; font-weight: 800; letter-spacing: -.02em; }
+  .scr-title { font-size: 11.6cqw; font-weight: 800; letter-spacing: -.025em; }
+
+  .scr-panel {
+    position: absolute; left: 4.167cqw; width: 91.67cqw;
+    background: #F2EEE5; border-radius: 3.3cqw; padding: 3.3cqw;
+  }
+  .scr-row { display: flex; align-items: baseline; justify-content: space-between; }
+  .scr-eyebrow { font-size: 3.33cqw; letter-spacing: .09em; color: #8A8578; }
+  .scr-reset { font-size: 3.33cqw; color: #8A8578; }
+  .scr-hero { font-size: 10cqw; font-weight: 700; line-height: 1.15; }
+  .scr-side { font-size: 5cqw; color: #8A8578; }
+  .scr-bar {
+    position: relative; height: 5.42cqw; border-radius: 1.25cqw;
+    background: #E4DECF; overflow: hidden; margin-top: 2.5cqw;
+  }
+  .scr-bar i {
+    display: block; height: 100%; border-radius: 1.25cqw; background: #FFB03A;
     transform-origin: left; transform: scaleX(0);
     transition: transform 700ms var(--ease-out) 120ms;
   }
-  .mockbar.warn i { background: #B06A18; transition-delay: 240ms; }
-  .in .mockbar i { transform: scaleX(var(--w)); }
-  .spark { width: 100%; height: 56px; }
-  .spark polyline { fill: none; stroke-width: 2; stroke-dasharray: 220; stroke-dashoffset: 220; transition: stroke-dashoffset 900ms var(--ease-out) 150ms; }
+  .scr-bar.kopi i { background: #B06A18; transition-delay: 240ms; }
+  .in .scr-bar i { transform: scaleX(var(--w)); }
+  /* the pace marker: where the window's own clock has reached */
+  .scr-bar u {
+    position: absolute; top: 0; bottom: 0; left: var(--p); width: .5cqw;
+    background: #111318; opacity: 0;
+    transition: opacity 300ms var(--ease-out) 700ms;
+  }
+  .in .scr-bar u { opacity: 1; }
+  .scr-status {
+    position: absolute; left: 0; right: 0; bottom: 3.1cqw; text-align: center;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 6.1cqw; color: #FFB03A; letter-spacing: -.01em;
+  }
+
+  .scr-chart { position: absolute; left: 12.1cqw; right: 7.5cqw; top: 3.3cqw; height: 44cqw; }
+  .scr-chart svg { width: 100%; height: 100%; display: block; }
+  .scr-rule { position: absolute; left: 0; right: 0; height: .35cqw; background: #E4DECF; }
+  .scr-axis {
+    position: absolute; right: calc(100% + 1.4cqw); transform: translateY(-50%);
+    font-size: 2.9cqw; color: #8A8578;
+  }
+  .scr-legend { position: absolute; left: 3.3cqw; bottom: 3.3cqw; font-size: 4.17cqw; line-height: 1.5; }
+  .scr-span { position: absolute; right: 3.3cqw; bottom: 3.3cqw; font-size: 4.17cqw; color: #8A8578; }
+  .scr-hint {
+    position: absolute; left: 0; right: 0; bottom: 4.2cqw; text-align: center;
+    font-size: 4.17cqw; color: #8A8578;
+  }
+  .spark polyline { fill: none; stroke-width: 2; stroke-dasharray: 240; stroke-dashoffset: 240; transition: stroke-dashoffset 900ms var(--ease-out) 150ms; }
   .in .spark polyline { stroke-dashoffset: 0; }
+
   .demo { display: flex; flex-direction: column; gap: 10px; }
   .demo .dcap h3 { color: var(--accent); margin-bottom: 3px; }
   .demo .dcap p { font-size: .88rem; color: var(--ink-soft); }
@@ -332,7 +420,28 @@
   footer.legal { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--rule); color: var(--muted); font-size: .85rem; display: flex; flex-direction: column; gap: 8px; }
   .privacy-grid { display: flex; flex-direction: column; gap: 12px; }
   .privacy-grid strong { color: var(--ink); }
+
+  /* ===== touch =====
+     Keyed on the pointer, not the viewport: a touchscreen laptop needs these
+     as much as a phone does, and a narrow desktop window does not. Measured
+     rather than guessed — every control below came in under 44px on a phone,
+     and the accordion headers at 28px are the ones that matter most, since
+     Troubleshooting is where a customer with a problem is already tapping. */
+  @media (pointer: coarse) {
+    summary { padding: 9px 0; }
+    details { padding: 7px 0; }
+    .markdone, .copy, .osswitch button {
+      min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
+    }
+    .copy { top: 6px; right: 6px; }
+    /* Footer links sit alone rather than inside a sentence, so they get real
+       hit areas; inline links in prose stay inline, where padding would break
+       the line box. */
+    footer.legal a { display: inline-block; padding: 8px 0; }
+  }
 </style>
+</head>
+<body>
 
 <div class="wrap">
 
@@ -403,14 +512,14 @@
         <h3>Power up KopiMeter</h3>
         <p>Plug the USB-C cable into the side port and any charger or computer port.
         The kopi glass appears in a couple of seconds, then the screen settles on
-        <strong>Waiting</strong> — the right screen to be on. It means the device is
-        advertising over Bluetooth, ready for step 3.</p>
+        <strong>No computer</strong> — the right screen to be on. It means the device is
+        advertising over Bluetooth and waiting for your machine, ready for step 3.</p>
         <button class="markdone">Mark done</button>
       </div>
       <div class="visual">
         <div class="device small"><div class="screenbox">
           <canvas width="40" height="40" data-scene="waiting" aria-label="The waiting screen"></canvas>
-        </div><div class="cap">WAITING</div></div>
+        </div><div class="cap">NO COMPUTER</div></div>
         <p class="vlabel">what your screen shows</p>
       </div>
     </div>
@@ -539,22 +648,50 @@
     </div>
     <div class="screens">
       <div class="device reveal">
-        <div class="htmlscreen" aria-label="The usage screen">
-          <div class="mockline">SESSION <b>62%</b> · fresh pot 2h 14m</div>
-          <div class="mockbar"><i style="--w:.62"></i></div>
-          <div class="mockline" style="margin-top:6px">WEEK <b>81%</b> · resets Mon</div>
-          <div class="mockbar warn"><i style="--w:.81"></i></div>
-          <div class="mockline" style="margin-top:8px">status · active</div>
+        <div class="htmlscreen" aria-label="The usage screen: the pot at 62 per cent, fresh pot in 2 hours 14 minutes; the week's sack at 81 per cent">
+          <div class="scr-head">
+            <svg class="scr-mark" viewBox="0 0 11 10" shape-rendering="crispEdges" aria-hidden="true"><g class="markcopy"></g></svg>
+            <span class="scr-clock">14:32</span>
+            <span class="scr-batt" aria-hidden="true"></span>
+          </div>
+          <div class="scr-panel" style="top:20.83cqw">
+            <div class="scr-row"><span class="scr-eyebrow">THE POT</span><span class="scr-reset">Fresh pot in 2h 14m</span></div>
+            <div class="scr-row"><span class="scr-hero">62%</span><span class="scr-side">38% in pot</span></div>
+            <div class="scr-bar"><i style="--w:.62"></i><u style="--p:55%"></u></div>
+          </div>
+          <div class="scr-panel" style="top:55cqw">
+            <div class="scr-row"><span class="scr-eyebrow">THE WEEK'S SACK</span><span class="scr-reset">New sack in 3d 6h</span></div>
+            <div class="scr-row"><span class="scr-hero" style="color:#B06A18">81%</span><span class="scr-side">19% in sack</span></div>
+            <div class="scr-bar kopi"><i style="--w:.81"></i><u style="--p:54%"></u></div>
+          </div>
+          <div class="scr-status">✳ Connected…</div>
         </div>
         <div class="cap"><b>USAGE</b> · the exact numbers (default)</div>
       </div>
       <div class="device reveal" style="--d:60ms">
-        <div class="htmlscreen" aria-label="The history screen">
-          <svg class="spark" viewBox="0 0 100 40" preserveAspectRatio="none">
-            <polyline points="0,34 10,32 18,33 26,28 34,25 42,26 50,18 58,20 66,14 74,15 82,9 92,11 100,6" stroke="#6B4423"/>
-            <polyline points="0,38 20,37 40,36 60,33 80,31 100,28" stroke="#FFB03A"/>
-          </svg>
-          <div class="mockline">last 24h · <b style="font-size:.66rem;color:#6B4423">▬</b> session · <b style="font-size:.66rem;color:#B06A18">▬</b> week</div>
+        <div class="htmlscreen" aria-label="The history screen: a 24-hour sparkline, pot at 43 per cent, sack at 82 per cent">
+          <div class="scr-head">
+            <svg class="scr-mark" viewBox="0 0 11 10" shape-rendering="crispEdges" aria-hidden="true"><g class="markcopy"></g></svg>
+            <span class="scr-title">History</span>
+            <span class="scr-batt" aria-hidden="true"></span>
+          </div>
+          <div class="scr-panel" style="top:20.83cqw; height:64.58cqw">
+            <div class="scr-chart">
+              <div class="scr-rule" style="top:0"><span class="scr-axis">100</span></div>
+              <div class="scr-rule" style="top:20%; background:#FFB03A"><span class="scr-axis" style="color:#B06A18">80</span></div>
+              <div class="scr-rule" style="bottom:0"><span class="scr-axis">0</span></div>
+              <svg class="spark" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
+                <polyline points="0,36 6,20 8,38 14,16 16,39 22,10 24,38 30,14 32,39 38,8 40,37 46,12 48,38 54,9 56,38 62,15 64,39 70,11 72,38 78,13 80,39 86,10 92,26 100,18" stroke="#FFB03A"/>
+                <polyline points="0,33 20,29 40,25 60,20 80,14 100,9" stroke="#8A8578"/>
+              </svg>
+            </div>
+            <div class="scr-legend">
+              <div style="color:#FFB03A">pot (5-hour) 43%</div>
+              <div style="color:#8A8578">sack (weekly) 82%</div>
+            </div>
+            <div class="scr-span">last 24h</div>
+          </div>
+          <div class="scr-hint">swipe right for usage</div>
         </div>
         <div class="cap"><b>HISTORY</b> · your last 24 hours</div>
       </div>
@@ -614,9 +751,11 @@
       <p class="sub">The app names its own problem — hover the tray icon for status, then open the match.</p>
     </div>
     <div class="tlist reveal">
-      <details><summary>The device shows Waiting or Listening</summary>
+      <details><summary>The device shows “No computer” or “No pour yet”</summary>
         <div class="ans"><p class="means">The device is on, but the app isn't sending anything.</p>
-        <p>Check the cup icon is in your tray. If it isn't, open KopiMeter from the Start menu or Applications folder.</p></div></details>
+        <p><strong>No computer</strong> means it hasn't found your machine at all — check the pairing.
+        <strong>No pour yet</strong> means it's connected but no reading has arrived. Either way, check the
+        cup icon is in your tray; if it isn't, open KopiMeter from the Start menu or Applications folder.</p></div></details>
       <details><summary>The tray says Scanning and stays there</summary>
         <div class="ans"><p class="means">The app can't find your device.</p>
         <p>Check it's powered and nearby. Still stuck? Remove it in Bluetooth settings and pair again.</p></div></details>
@@ -626,7 +765,7 @@
       <details><summary>The screen is blank</summary>
         <div class="ans"><p class="means">No power, or the display is asleep.</p>
         <p>Reseat the USB-C cable, then tap the screen or press the middle button.</p></div></details>
-      <details><summary>History says "Collecting data…"</summary>
+      <details><summary>History says “Nothing brewed yet”</summary>
         <div class="ans"><p class="means">Nothing's wrong — there isn't enough history yet.</p>
         <p>Leave it running; the line fills in over the first hour.</p></div></details>
     </div>
@@ -678,7 +817,7 @@
 <aside class="dock" id="dock" aria-hidden="true">
   <div class="device">
     <div class="screenbox"><canvas width="40" height="40" data-scene="dock"></canvas></div>
-    <div class="cap" id="dockCap">WAITING</div>
+    <div class="cap" id="dockCap">NO COMPUTER</div>
   </div>
   <div class="prog" id="dockProg"><i></i><i></i><i></i><i></i><i></i></div>
   <div class="docklabel" id="dockLabel">step 1 of 5</div>
@@ -827,7 +966,7 @@
        Steps 1-4 the device has no data yet — it waits. Step 5 is where it fills. */
     dock:    function (s, now) {
       s.clear();
-      if (dockState.step < 5) { s.glass({ level: 0 }); s.steam(now, 1, { top: .2 }); if (dockCap) dockCap.textContent = "WAITING"; }
+      if (dockState.step < 5) { s.glass({ level: 0 }); s.steam(now, 1, { top: .2 }); if (dockCap) dockCap.textContent = "NO COMPUTER"; }
       else {
         var t = Math.min(1, (now % 8000) / 4000);
         var lvl = 82 * t;
@@ -988,3 +1127,6 @@
   }
 })();
 </script>
+
+</body>
+</html>
