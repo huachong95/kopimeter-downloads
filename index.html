@@ -112,10 +112,53 @@
     }
   }
 
-  /* ===== hero ===== */
-  .hero { display: grid; grid-template-columns: 1.05fr .95fr; gap: 42px; align-items: center; padding: 58px 0 28px; }
-  @media (max-width: 860px) { .hero { grid-template-columns: 1fr; padding-top: 38px; } }
+  /* ===== hero =====
+     The hero's job is one sentence a stranger should get without reading:
+     this object on your desk shows you your Claude usage. That only lands if
+     the device and the numbers are visible together — a pixel glass alone
+     asks the reader to take "meter" on faith. So the hero is a product plate:
+     the live glass and the Usage screen, side by side, captioned as the two
+     ways to read ONE device. Copy and QR sit above it rather than beside it,
+     because splitting the width three ways would shrink each screen below
+     the size its own text stays legible at (see .screens, ~240px floor). */
+  .hero { display: flex; flex-direction: column; gap: 34px; padding: 58px 0 28px; }
+  @media (max-width: 860px) { .hero { padding-top: 38px; gap: 26px; } }
+  .hero-intro { display: grid; grid-template-columns: minmax(0, 1.1fr) auto; gap: 42px; align-items: end; }
+  @media (max-width: 860px) { .hero-intro { grid-template-columns: 1fr; align-items: start; gap: 22px; } }
   .hero-copy { display: flex; flex-direction: column; gap: 18px; }
+
+  /* The plate. Two faces of the same device with the relationship between
+     them made explicit — not decoration: tapping or swiping really is how a
+     user moves between these two screens. */
+  .plate { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); gap: 18px; align-items: center; }
+  .plate-face { margin: 0; display: flex; flex-direction: column; gap: 12px; }
+  .plate-face figcaption { text-align: center; }
+  .plate-face .ctitle {
+    font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: .7rem; font-weight: 700; letter-spacing: .17em; text-transform: uppercase;
+    color: var(--accent); display: block; margin-bottom: 3px;
+  }
+  .plate-face .cbody { font-size: .9rem; color: var(--ink-soft); }
+  .plate .device { max-width: none; }
+  /* The connector reads as a hinge between the two faces: a rule that stops
+     either side of a gesture chip. It rotates to vertical when they stack. */
+  .plate-link { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--muted); }
+  .plate-link .bar { width: 1px; flex: 1; min-height: 34px; background: var(--rule); }
+  .plate-link .chip {
+    border: 1px solid var(--rule); background: var(--surface); border-radius: 999px;
+    padding: 7px 12px; font-family: ui-monospace, Menlo, monospace; font-size: .66rem;
+    letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; color: var(--ink-soft);
+    box-shadow: var(--shadow-sm);
+  }
+  .plate-note {
+    text-align: center; color: var(--muted); font-size: .9rem; margin-top: 2px;
+  }
+  .plate-note b { color: var(--ink); font-weight: 700; }
+  @media (max-width: 820px) {
+    .plate { grid-template-columns: 1fr; gap: 14px; }
+    .plate-link { flex-direction: row; }
+    .plate-link .bar { width: auto; height: 1px; min-height: 0; }
+  }
   .brandline { display: flex; align-items: center; gap: 12px; }
   .brandline svg { width: 34px; height: 31px; }
   .wordmark { font-weight: 800; font-size: 1.02rem; }
@@ -125,6 +168,10 @@
     display: flex; gap: 16px; align-items: center; background: var(--surface);
     border: 1px solid var(--rule); border-radius: 14px; padding: 14px 16px; max-width: 30rem;
   }
+  /* In the hero the card sits in its own column beside the headline, so it
+     goes narrow and stacks; everywhere else it stays the wide row. */
+  .hero-intro .startcard { flex-direction: column; align-items: flex-start; max-width: 17rem; gap: 12px; }
+  @media (max-width: 860px) { .hero-intro .startcard { flex-direction: row; align-items: center; max-width: 30rem; } }
   .startcard img { border-radius: 8px; background: #fff; padding: 4px; flex: none; width: 104px; height: 104px; }
   .startcard p { font-size: .9rem; color: var(--ink-soft); }
   .startcard .sub { font-size: .78rem; color: var(--muted); margin-top: 5px; }
@@ -446,6 +493,7 @@
 <div class="wrap">
 
   <header class="hero">
+    <div class="hero-intro">
     <div class="hero-copy">
       <div class="brandline reveal">
         <svg viewBox="0 0 11 10" shape-rendering="crispEdges" role="img" aria-label="KopiMeter cup mark"><g id="mark"></g></svg>
@@ -453,10 +501,11 @@
       </div>
       <h1 class="reveal" style="--d:60ms">Your Claude usage,<br>on your desk.</h1>
       <p class="lede reveal" style="--d:110ms">
-        The glass is the meter: it holds exactly what's left of your Claude session
-        and drains as you work. Setup takes about ten minutes — this page walks you
+        A small glass on your desk that empties as you work, so you never meet your
+        Claude limit mid-thought. Setup takes about ten minutes — this page walks you
         through all five steps and keeps your place.
       </p>
+    </div>
       <div class="startcard reveal" style="--d:160ms">
         <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUgAAAFIAQAAAAAab1qeAAAB0klEQVR42u2aQXIjMQwD0Vv5/5eRAynK2VOoXDGu8owtnLooEuQI65fXP0UZZZRRRnmvL0mino2MJAtLwnclPDc85aJq6vE/kvUcngslIAkjIZn6ZlZC6UVpyVjIUt9C6S9KKnOqsqhD6TF/NjrkSp697+9KeK54cjY8/ZExwrMSnguevjjlU5F+Rmd4LpSoKnnveXdp6sglfmmrpGIRUdu8AUu0tw+ljdIWHH90ohO6xMd/7pW28OCjIlNCIFeEhtLv8ydNkQO37CfubBpK235Tkk337p1M+5569KC0BXYDFCeZMn1SKC36ow5Fu8qSp/+06J/huarvtwq5A7RS6BT48FwpUTeZHoQc95T8+eCX2sZzANZsmfjPlbLnc+6e3Uyb6Ru34bnlOR7JPVTquXK7+rw/Wvsl2W2Y+HxrNG1oKG3mSzVA9ilBdIeEjZM/1/v9WE01vkmn6vFyeG54oluJzp/ckXLy58t83rrxWTHpj/fw4bngOZF49/mNVOLn/3A+pNhht22a9ig8N/OQiUnagKLbccYvvSuPZXK963TP6EPpRdm2c2ZNn81TKC38ku9WHwvlOeQQSo/nQ9pznr7d53wI8Z/r/iiUoowyyihXym/eqdqrPd/PCAAAAABJRU5ErkJggg==" alt="QR code linking to the KopiMeter download page" width="328" height="328">
         <div>
@@ -466,13 +515,57 @@
         </div>
       </div>
     </div>
-    <div class="device reveal tapme" style="--d:100ms" id="heroDevice">
-      <div class="screenbox">
-        <canvas width="40" height="40" data-scene="hero" aria-label="Live preview of the KopiMeter display"></canvas>
-        <div class="chit" id="heroChit" aria-live="polite"></div>
+
+    <div class="plate">
+      <figure class="plate-face reveal" style="--d:180ms">
+        <div class="device tapme" id="heroDevice">
+          <div class="screenbox">
+            <canvas width="40" height="40" data-scene="hero" aria-label="Live preview of the KopiMeter display: the kopi glass, draining as the session is used"></canvas>
+            <div class="chit" id="heroChit" aria-live="polite"></div>
+          </div>
+          <div class="cap"><b>LIVE</b> · tap the glass</div>
+        </div>
+        <figcaption>
+          <span class="ctitle">At a glance</span>
+          <span class="cbody">The glass holds what's left of your session and drains as you work.</span>
+        </figcaption>
+      </figure>
+
+      <div class="plate-link reveal" style="--d:260ms" aria-hidden="true">
+        <span class="bar"></span>
+        <span class="chip">tap · swipe</span>
+        <span class="bar"></span>
       </div>
-      <div class="cap"><b>LIVE</b> · the real display — tap the glass</div>
+
+      <figure class="plate-face reveal" style="--d:220ms">
+        <div class="device">
+          <div class="htmlscreen" aria-label="The usage screen: the pot at 62 per cent, fresh pot in 2 hours 14 minutes; the week's sack at 81 per cent">
+            <div class="scr-head">
+              <svg class="scr-mark" viewBox="0 0 11 10" shape-rendering="crispEdges" aria-hidden="true"><g class="markcopy"></g></svg>
+              <span class="scr-clock">14:32</span>
+              <span class="scr-batt" aria-hidden="true"></span>
+            </div>
+            <div class="scr-panel" style="top:20.83cqw">
+              <div class="scr-row"><span class="scr-eyebrow">THE POT</span><span class="scr-reset">Fresh pot in 2h 14m</span></div>
+              <div class="scr-row"><span class="scr-hero">62%</span><span class="scr-side">38% in pot</span></div>
+              <div class="scr-bar"><i style="--w:.62"></i><u style="--p:55%"></u></div>
+            </div>
+            <div class="scr-panel" style="top:55cqw">
+              <div class="scr-row"><span class="scr-eyebrow">THE WEEK'S SACK</span><span class="scr-reset">New sack in 3d 6h</span></div>
+              <div class="scr-row"><span class="scr-hero" style="color:#B06A18">81%</span><span class="scr-side">19% in sack</span></div>
+              <div class="scr-bar kopi"><i style="--w:.81"></i><u style="--p:54%"></u></div>
+            </div>
+            <div class="scr-status">✳ Connected…</div>
+          </div>
+          <div class="cap"><b>USAGE</b> · the exact numbers</div>
+        </div>
+        <figcaption>
+          <span class="ctitle">To the percent</span>
+          <span class="cbody">Both windows, what's left in each, and when the next one pours.</span>
+        </figcaption>
+      </figure>
     </div>
+    <p class="plate-note reveal" style="--d:320ms"><b>One device, two ways to read it.</b> Glance at the glass across the room; tap it when you want the number.</p>
   </header>
 
   <section>
