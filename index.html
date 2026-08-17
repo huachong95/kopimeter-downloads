@@ -661,6 +661,19 @@
           you'd rather check the download first, compare it against
           <code>SHA256SUMS.txt</code> on the download page.</div>
         </div>
+        <div class="os-block" data-os="mac">
+          <div class="callout"><strong>macOS needs one extra click the first time.</strong>
+          Open the <code>.dmg</code>, drag <strong>KopiMeter</strong> to Applications, then
+          — this part matters — <strong>right-click the app and choose Open</strong>, and
+          confirm. A plain double-click gives you &ldquo;cannot be opened because the
+          developer cannot be verified&rdquo; with no way past it. That is expected:
+          KopiMeter is a small independent project and the app isn't notarised. You only
+          do this once; afterwards it opens normally.</div>
+          <div class="callout"><strong>Then allow Bluetooth.</strong> macOS asks once,
+          the first time KopiMeter looks for your device. If you miss the prompt, turn it
+          on under <strong>System Settings → Privacy &amp; Security → Bluetooth</strong> —
+          without it the app runs but never finds the device.</div>
+        </div>
         <div class="callout"><strong>The app must stay running</strong> — it's what talks to
         Anthropic and feeds your device over Bluetooth. It starts by itself when you sign in;
         leave it there and forget it.</div>
