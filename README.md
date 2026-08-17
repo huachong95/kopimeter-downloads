@@ -9,14 +9,14 @@ screen empties as you work and refills on the fresh pot, so you never meet the
 limit mid-thought.
 
 **[→ Set-up guide](https://huachong95.github.io/kopimeter-downloads/)** ·
-**[→ Download the installer](https://github.com/huachong95/kopimeter-downloads/releases/latest)**
+**[→ Download for Windows or macOS](https://github.com/huachong95/kopimeter-downloads/releases/latest)**
 
 This repository holds **only what customers download**: the installer, its
 checksums, and the set-up guide. There is no source code here.
 
 ---
 
-## Install
+## Install — Windows
 
 1. Download `KopiMeterSetup-<version>.exe` from the
    [latest release](https://github.com/huachong95/kopimeter-downloads/releases/latest).
@@ -33,13 +33,53 @@ code-signed, so Windows shows an **unknown publisher** warning. Click
 If you would rather check the download first, verify it against the checksum
 published with the release — see below.
 
+## Install — macOS
+
+Requires an **Apple Silicon** Mac (M1 or later) on macOS 11 or newer.
+
+1. Download `KopiMeter-<version>.dmg` from the
+   [latest release](https://github.com/huachong95/kopimeter-downloads/releases/latest).
+2. Open it and drag **KopiMeter** to Applications.
+3. **Right-click the app and choose Open**, then confirm — see below.
+4. **Allow Bluetooth** when macOS asks.
+5. Follow the [set-up guide](https://huachong95.github.io/kopimeter-downloads/).
+
+KopiMeter lives in the **menu bar**, not the Dock — look for the cup icon at
+the top-right of your screen.
+
+### "KopiMeter cannot be opened because the developer cannot be verified"
+
+Expected, and macOS is stricter about this than Windows: a plain double-click
+gives that message with **no way past it in the dialog**. Right-click (or
+Control-click) the app and choose **Open** instead — the same dialog appears,
+now with an Open button. You only do this once.
+
+The app is not notarised for the same reason the Windows installer is not
+signed: this is a small independent project and an Apple Developer account is
+a recurring cost out of proportion to it.
+
+### Bluetooth permission
+
+macOS asks once, the first time KopiMeter looks for your device. If you miss
+the prompt, enable it under **System Settings → Privacy & Security →
+Bluetooth**. Without it the app runs normally and simply never finds the
+device.
+
 ## Verifying your download (optional)
 
-Windows has had `Get-FileHash` built in since PowerShell 4, so this needs
-nothing extra. Open PowerShell and run it against the file you downloaded:
+Windows ships `Get-FileHash` and macOS ships `shasum`, so this needs nothing
+extra. Run the one for your platform against the file you downloaded.
+
+Windows (PowerShell):
 
 ```powershell
 Get-FileHash $HOME\Downloads\KopiMeterSetup-0.1.0.exe -Algorithm SHA256
+```
+
+macOS (Terminal):
+
+```bash
+shasum -a 256 ~/Downloads/KopiMeter-0.1.0.dmg
 ```
 
 Compare the `Hash` it prints with the line for that filename in
