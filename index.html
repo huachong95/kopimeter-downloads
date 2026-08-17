@@ -172,7 +172,24 @@
      goes narrow and stacks; everywhere else it stays the wide row. */
   .hero-intro .startcard { flex-direction: column; align-items: flex-start; max-width: 17rem; gap: 12px; }
   @media (max-width: 860px) { .hero-intro .startcard { flex-direction: row; align-items: center; max-width: 30rem; } }
-  .startcard img { border-radius: 8px; background: #fff; padding: 4px; flex: none; width: 104px; height: 104px; }
+  /* The QR is also the button. Scanning it loads this guide (that is what the
+     printed box card needs it to encode), but CLICKING a link to the page you
+     are already on is a no-op — so the click goes to the download page, which
+     is what the caption beside it promises anyway. */
+  .startcard .qrbtn { position: relative; display: block; flex: none; border-radius: 8px;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out); }
+  .startcard img { display: block; border-radius: 8px; background: #fff; padding: 4px; width: 104px; height: 104px; }
+  .startcard .qrhint {
+    position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%);
+    background: var(--ink); color: var(--ground); border-radius: 999px; padding: 2px 8px;
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .56rem;
+    letter-spacing: .13em; text-transform: uppercase; white-space: nowrap;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .startcard .qrbtn:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  }
+  .startcard .qrbtn:active { transform: scale(0.97); }
   .startcard p { font-size: .9rem; color: var(--ink-soft); }
   .startcard .sub { font-size: .78rem; color: var(--muted); margin-top: 5px; }
 
@@ -507,7 +524,11 @@
       </p>
     </div>
       <div class="startcard reveal" style="--d:160ms">
-        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUgAAAFIAQAAAAAab1qeAAAB0klEQVR42u2aQXIjMQwD0Vv5/5eRAynK2VOoXDGu8owtnLooEuQI65fXP0UZZZRRRnmvL0mino2MJAtLwnclPDc85aJq6vE/kvUcngslIAkjIZn6ZlZC6UVpyVjIUt9C6S9KKnOqsqhD6TF/NjrkSp697+9KeK54cjY8/ZExwrMSnguevjjlU5F+Rmd4LpSoKnnveXdp6sglfmmrpGIRUdu8AUu0tw+ljdIWHH90ohO6xMd/7pW28OCjIlNCIFeEhtLv8ydNkQO37CfubBpK235Tkk337p1M+5569KC0BXYDFCeZMn1SKC36ow5Fu8qSp/+06J/huarvtwq5A7RS6BT48FwpUTeZHoQc95T8+eCX2sZzANZsmfjPlbLnc+6e3Uyb6Ru34bnlOR7JPVTquXK7+rw/Wvsl2W2Y+HxrNG1oKG3mSzVA9ilBdIeEjZM/1/v9WE01vkmn6vFyeG54oluJzp/ckXLy58t83rrxWTHpj/fw4bngOZF49/mNVOLn/3A+pNhht22a9ig8N/OQiUnagKLbccYvvSuPZXK963TP6EPpRdm2c2ZNn81TKC38ku9WHwvlOeQQSo/nQ9pznr7d53wI8Z/r/iiUoowyyihXym/eqdqrPd/PCAAAAABJRU5ErkJggg==" alt="QR code linking to the KopiMeter download page" width="328" height="328">
+        <a class="qrbtn" href="https://github.com/huachong95/kopimeter-downloads/releases/latest"
+           aria-label="Open the KopiMeter download page">
+          <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUgAAAFIAQAAAAAab1qeAAAB0klEQVR42u2aQXIjMQwD0Vv5/5eRAynK2VOoXDGu8owtnLooEuQI65fXP0UZZZRRRnmvL0mino2MJAtLwnclPDc85aJq6vE/kvUcngslIAkjIZn6ZlZC6UVpyVjIUt9C6S9KKnOqsqhD6TF/NjrkSp697+9KeK54cjY8/ZExwrMSnguevjjlU5F+Rmd4LpSoKnnveXdp6sglfmmrpGIRUdu8AUu0tw+ljdIWHH90ohO6xMd/7pW28OCjIlNCIFeEhtLv8ydNkQO37CfubBpK235Tkk337p1M+5569KC0BXYDFCeZMn1SKC36ow5Fu8qSp/+06J/huarvtwq5A7RS6BT48FwpUTeZHoQc95T8+eCX2sZzANZsmfjPlbLnc+6e3Uyb6Ru34bnlOR7JPVTquXK7+rw/Wvsl2W2Y+HxrNG1oKG3mSzVA9ilBdIeEjZM/1/v9WE01vkmn6vFyeG54oluJzp/ckXLy58t83rrxWTHpj/fw4bngOZF49/mNVOLn/3A+pNhht22a9ig8N/OQiUnagKLbccYvvSuPZXK963TP6EPpRdm2c2ZNn81TKC38ku9WHwvlOeQQSo/nQ9pznr7d53wI8Z/r/iiUoowyyihXym/eqdqrPd/PCAAAAABJRU5ErkJggg==" alt="QR code linking to this guide" width="328" height="328">
+          <span class="qrhint">tap &middot; or scan</span>
+        </a>
         <div>
           <p><strong>Scan to start</strong> — opens this guide and the installer at
           <a href="https://github.com/huachong95/kopimeter-downloads/releases/latest">the download page</a>. Same code as the card in your box.</p>
