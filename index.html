@@ -604,7 +604,7 @@
     <div class="card reveal" style="--d:60ms">
       <ul class="checklist">
         <li><span class="tick">✓</span><span><strong>A Claude Pro or Max subscription.</strong> <span class="note">KopiMeter reads the session and weekly limits those plans come with.</span></span></li>
-        <li><span class="tick">✓</span><span><strong>A Windows 10/11 or macOS 12+ computer</strong> <span class="note">with Bluetooth — the machine KopiMeter pairs with, usually the one you work on.</span></span></li>
+        <li><span class="tick">✓</span><span><strong>A Windows 10/11 PC, or an Apple&nbsp;Silicon Mac (M1 or later) on macOS 11+</strong> <span class="note">with Bluetooth — the machine KopiMeter pairs with, usually the one you work on. There is no Intel Mac build.</span></span></li>
         <li><span class="tick">✓</span><span><strong>Claude Code installed on it.</strong> <span class="note">You sign in with it once, in step 4, then never need to open it again.</span></span></li>
         <li><span class="tick">✓</span><span><strong>The USB-C cable in the box</strong> <span class="note">and a spare port or charger.</span></span></li>
       </ul>
@@ -659,11 +659,17 @@
           expected: KopiMeter is a small independent project and the installer isn't
           code-signed. Click <strong>More info</strong>, then <strong>Run anyway</strong>. If
           you'd rather check the download first, compare it against
-          <code>SHA256SUMS.txt</code> on the download page.</div>
+          <code>SHA256SUMS-windows.txt</code> on the download page.</div>
         </div>
         <div class="os-block" data-os="mac">
+          <div class="callout"><strong>KopiMeter needs an Apple&nbsp;Silicon Mac</strong> —
+          M1 or later, on macOS 11 or newer. There is no Intel build. On an Intel Mac the
+          app is reported as damaged — that looks much like the warning below, but it is a
+          different thing and cannot be clicked through.</div>
           <div class="callout"><strong>macOS needs one extra click the first time.</strong>
-          Open the <code>.dmg</code>, drag <strong>KopiMeter</strong> to Applications, then
+          Open the <code>.dmg</code>, drag <strong>KopiMeter</strong> to Applications
+          <em>before</em> opening it — running it straight off the disk image works once,
+          but start-at-login can't point at a disk that won't be there next time. Then
           — this part matters — <strong>right-click the app and choose Open</strong>, and
           confirm. A plain double-click gives you &ldquo;cannot be opened because the
           developer cannot be verified&rdquo; with no way past it. That is expected:
@@ -675,8 +681,13 @@
           without it the app runs but never finds the device.</div>
         </div>
         <div class="callout"><strong>The app must stay running</strong> — it's what talks to
-        Anthropic and feeds your device over Bluetooth. It starts by itself when you sign in;
-        leave it there and forget it.</div>
+        Anthropic and feeds your device over Bluetooth. Leave it there and forget it.</div>
+        <div class="os-block on" data-os="win"><div class="callout">The installer sets it to
+        start when you sign in, so there's nothing to do here.</div></div>
+        <div class="os-block" data-os="mac"><div class="callout"><strong>One thing to switch
+        on:</strong> click the cup in the menu bar and tick <strong>Start at login</strong>.
+        macOS has no installer to do it for you, so without this KopiMeter is gone after a
+        restart — the menu bar is empty and your device reads <em>No computer</em>.</div></div>
         <button class="markdone">Mark done</button>
       </div>
       <div class="visual">

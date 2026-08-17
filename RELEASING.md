@@ -11,7 +11,7 @@ Two things get published, and they are independent:
 | `index.html` (the set-up guide) | `tools/publish-downloads.sh` in the source repo, then commit | whenever the guide changes |
 | `KopiMeterSetup-<version>.exe` (Windows) | attached to a GitHub **Release** — never committed to the tree | per version |
 | `KopiMeter-<version>.dmg` (macOS, Apple Silicon) | same release, same rule | per version |
-| `SHA256SUMS.txt` | same release; see "Two platforms, one checksum file" below | per version |
+| `SHA256SUMS-windows.txt` + `SHA256SUMS-macos.txt` | same release, one per platform | per version |
 
 Binaries are release assets, not tracked files. A committed `.exe` bloats
 every future clone forever and cannot be replaced without rewriting history.
@@ -32,7 +32,7 @@ if the built exe fails `--selftest`. It writes, in order:
 
 - `dist\KopiMeter.exe`
 - `dist\KopiMeterSetup-<version>.exe`
-- `dist\SHA256SUMS.txt` — generated **last**, covering only that run's
+- `dist\SHA256SUMS-windows.txt` — generated **last**, covering only that run's
   artefacts
 
 Then walk the customer path yourself on a machine **without Python installed**
@@ -48,7 +48,7 @@ bash packaging/build-macos.sh
 Same shape as the Windows script and the same two gates: it refuses to package
 if the test suite fails, and refuses if `KopiMeter.app --selftest` fails. It
 writes `dist/KopiMeter.app`, `dist/KopiMeter-<version>.dmg` and
-`dist/SHA256SUMS.txt`.
+`dist/SHA256SUMS-macos.txt`.
 
 **Needs Python 3.13 exactly** — the lock is hash-locked to that minor and
 `--require-hashes` refuses wheels it has no hash for. Set `KOPIMETER_PYTHON`
@@ -60,15 +60,19 @@ workflow artifact on every push — download that and attach it to the release.
 It builds and self-tests the bundle on a real arm64 Mac, but the runner has no
 Bluetooth radio, so pairing is still only provable on your own machine.
 
-### Two platforms, one checksum file
+### Two platforms, two checksum files
 
-Each build script writes a `SHA256SUMS.txt` covering **only its own run's
-artefacts** — so building on Windows then on macOS leaves you with two files
-that each know about half the release. Concatenate them before attaching:
+Each build script writes a manifest covering **only its own run's artefacts**,
+under a platform-qualified name: `SHA256SUMS-windows.txt` and
+`SHA256SUMS-macos.txt`. Attach both.
 
-```bash
-cat windows/SHA256SUMS.txt macos/SHA256SUMS.txt > SHA256SUMS.txt
-```
+The names used to both be `SHA256SUMS.txt`, which is a trap worth remembering:
+uploading both to one release means the second replaces the first, and the
+surviving manifest vouches for one installer while silently omitting the other.
+A customer told to "compare with the line for that filename" then finds no line
+for the file they are holding — and with the build unsigned, this manifest is
+the only integrity control the product has. Qualified names make that mistake
+impossible rather than merely documented.
 
 Never retype a hash by hand. A mistyped digest sends a customer who followed
 the instructions a false alarm, which teaches everyone to skip the step.
@@ -80,13 +84,14 @@ Tag:   v<version>              e.g. v0.1.0
 Title: KopiMeter <version>
 ```
 
-Attach all three:
+Attach all four:
 
 - `KopiMeterSetup-<version>.exe` — Windows
 - `KopiMeter-<version>.dmg` — macOS, Apple Silicon
-- `SHA256SUMS.txt` — covering both (see above)
+- `SHA256SUMS-windows.txt`
+- `SHA256SUMS-macos.txt`
 
-**Also paste the contents of `SHA256SUMS.txt` into the release notes.** This is
+**Also paste both manifests into the release notes.** This is
 not redundancy for its own sake: a checksum served from the same place as the
 binary is verified by whatever served the binary, so anyone who can replace one
 can replace the other. Release notes live in GitHub's database rather than in
@@ -104,9 +109,11 @@ ten minutes, keeps your place as you go.
 **Windows** will show "Windows protected your PC" with an unknown publisher.
 Click **More info** → **Run anyway**.
 
-**macOS** will say the developer cannot be verified, with no override in the
-dialog — **right-click the app and choose Open** instead. You only do this
-once. macOS also asks for Bluetooth permission the first time.
+**macOS** — drag KopiMeter to Applications *before* opening it, then
+**right-click the app and choose Open** and confirm; a plain double-click says
+the developer cannot be verified with no override in the dialog. You only do
+this once. macOS also asks for Bluetooth permission the first time, and there
+is no installer to set start-at-login, so tick it in the menu once.
 
 Both are expected: this is a small independent project, so the installer is
 not code-signed and the app is not notarised. Verify the download against the
@@ -116,7 +123,7 @@ KopiMeter needs an **Apple Silicon** Mac (M1 or later) on macOS 11+.
 
 ### SHA256
 ```
-<paste SHA256SUMS.txt verbatim>
+<paste both SHA256SUMS-*.txt files verbatim>
 ```
 
 KopiMeter is an independent product. It is not affiliated with, endorsed by,

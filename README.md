@@ -39,10 +39,16 @@ Requires an **Apple Silicon** Mac (M1 or later) on macOS 11 or newer.
 
 1. Download `KopiMeter-<version>.dmg` from the
    [latest release](https://github.com/huachong95/kopimeter-downloads/releases/latest).
-2. Open it and drag **KopiMeter** to Applications.
+2. Open it and drag **KopiMeter** to Applications. **Do this before opening
+   the app** — running it from the disk image works, but "Start at login"
+   cannot point at a disk that will not be mounted next time, and KopiMeter
+   will refuse rather than leave you a setting that quietly does nothing.
 3. **Right-click the app and choose Open**, then confirm — see below.
 4. **Allow Bluetooth** when macOS asks.
-5. Follow the [set-up guide](https://huachong95.github.io/kopimeter-downloads/).
+5. Click the cup in the menu bar and tick **Start at login**. macOS has no
+   installer to do this for you, so without it KopiMeter is gone after a
+   restart.
+6. Follow the [set-up guide](https://huachong95.github.io/kopimeter-downloads/).
 
 KopiMeter lives in the **menu bar**, not the Dock — look for the cup icon at
 the top-right of your screen.
@@ -65,6 +71,37 @@ the prompt, enable it under **System Settings → Privacy & Security →
 Bluetooth**. Without it the app runs normally and simply never finds the
 device.
 
+## Uninstalling — macOS
+
+There is no uninstaller: a DMG is a drag, not an installer, so nothing is
+tracked and there is nothing in System Settings to remove. Quit from the menu
+bar, then paste this into Terminal:
+
+```bash
+launchctl bootout gui/$(id -u)/com.kopimeter.tray 2>/dev/null
+rm -f  ~/Library/LaunchAgents/com.kopimeter.tray.plist
+rm -rf /Applications/KopiMeter.app
+```
+
+That is the whole removal. To also drop your settings, logs and the remembered
+pairing:
+
+```bash
+rm -rf ~/.config/kopimeter ~/Library/Logs/KopiMeter \
+       "$HOME/Library/Application Support/KopiMeter"
+```
+
+Leaving those in place means a reinstall picks up where you left off. Finally,
+forget the device under **System Settings → Bluetooth** if you are done with it.
+
+On Windows, uninstall normally through **Settings → Apps**.
+
+## Something not working?
+
+`~/Library/Logs/KopiMeter/daemon.log` on macOS, or
+`%LOCALAPPDATA%\KopiMeter\daemon.log` on Windows, is the log to send with a
+support request — it is what turns "it stopped working" into a one-reply answer.
+
 ## Verifying your download (optional)
 
 Windows ships `Get-FileHash` and macOS ships `shasum`, so this needs nothing
@@ -82,10 +119,11 @@ macOS (Terminal):
 shasum -a 256 ~/Downloads/KopiMeter-0.1.0.dmg
 ```
 
-Compare the `Hash` it prints with the line for that filename in
-`SHA256SUMS.txt`, which is attached to the release **and** reproduced in the
-release notes. They should match, ignoring upper/lower case. If they do not,
-delete the file and download it again rather than running it.
+Compare what it prints with the line for that filename in the checksum file
+for your platform — `SHA256SUMS-windows.txt` or `SHA256SUMS-macos.txt` — both
+attached to the release **and** reproduced in the release notes. They should
+match, ignoring upper/lower case. If they do not, delete the file and download
+it again rather than running it.
 
 Because the installer is unsigned, this checksum is the only integrity signal
 the product has — which is why the hash is published in two places rather than
@@ -107,6 +145,7 @@ reply.
 ## Third-party components
 
 KopiMeter bundles open-source components (LVGL, NimBLE-Arduino, ArduinoJson,
-bleak, httpx, Pillow and others) under their own licences. The full notice
-file ships with the installer as `THIRD_PARTY_NOTICES.md` and is attached to
-each release.
+bleak, httpx, Pillow, pyobjc and others) under their own licences. The full
+notice file travels with the download as `THIRD_PARTY_NOTICES.md` — beside the
+app inside the DMG on macOS, next to the installed exe on Windows — and is
+attached to each release.
