@@ -1155,7 +1155,19 @@
   });
 
   /* ---- platform switcher ---- */
-  var osKey = "km.os", curOS = store.get(osKey) || "win";
+  /* Detect on first visit rather than defaulting to Windows. The two OS paths
+     differ in ways that matter (Gatekeeper vs SmartScreen, menu bar vs tray,
+     and a Start-at-login step macOS has no installer to do), so landing a Mac
+     customer on the Windows copy sends them looking for a tray icon that will
+     never appear. A stored choice always wins — switching is deliberate. */
+  var osKey = "km.os";
+  function detectOS() {
+    try {
+      var p = navigator.platform || "", ua = navigator.userAgent || "";
+      return /Mac|iPhone|iPad|iPod/.test(p + " " + ua) ? "mac" : "win";
+    } catch (e) { return "win"; }
+  }
+  var curOS = store.get(osKey) || detectOS();
   function applyOS(os) {
     curOS = os; store.set(osKey, os);
     Array.prototype.forEach.call(document.querySelectorAll(".osswitch button"), function (b) {
