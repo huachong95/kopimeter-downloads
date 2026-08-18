@@ -666,10 +666,15 @@
           M1 or later, on macOS 11 or newer. There is no Intel build. On an Intel Mac the
           app is reported as damaged — that looks much like the warning below, but it is a
           different thing and cannot be clicked through.</div>
-          <div class="callout"><strong>macOS needs one extra click the first time.</strong>
-          Open the <code>.dmg</code>, drag <strong>KopiMeter</strong> to Applications
-          <em>before</em> opening it — running it straight off the disk image works once,
-          but start-at-login can't point at a disk that won't be there next time. Then
+          <div class="callout"><strong>The download is a disk image, not the app.</strong>
+          Double-click the <code>.dmg</code>; if macOS refuses, <strong>right-click it and
+          choose Open</strong>. A window opens with two icons — the <strong>KopiMeter</strong>
+          app and a shortcut to <strong>Applications</strong>. <strong>Drag KopiMeter onto
+          Applications</strong> to install it. Do this <em>before</em> opening the app:
+          running it from the disk image works, but start-at-login can't point at a disk that
+          won't be mounted next time.</div>
+          <div class="callout"><strong>Now open it from your Applications folder</strong> — not
+          from the disk image window. And
           — this part matters — <strong>right-click the app and choose Open</strong>, and
           confirm. A plain double-click gives you &ldquo;cannot be opened because the
           developer cannot be verified&rdquo; with no way past it. That is expected:
@@ -715,8 +720,23 @@
         <div class="os-block" data-os="mac">
           <p class="oslabel">macOS</p>
           <p>System Settings → Bluetooth → find <strong>KopiMeter</strong> → Connect.</p>
+          <div class="callout"><strong>A keyboard setup window will appear. That's expected —
+          close it.</strong> KopiMeter registers as a keyboard so its two buttons can send
+          shortcuts, so macOS tries to work out which kind it is and asks you to press the keys
+          either side of Shift. It has no such keys, so you can't finish it. Close the window —
+          or if it offers a list instead, pick <strong>ANSI</strong>. Nothing is lost either
+          way, and the device works normally.</div>
         </div>
         <p style="color:var(--muted); font-size:.92rem">Pairing also enables the two shortcut buttons on the device.</p>
+        <div class="callout"><strong>KopiMeter now belongs to this computer.</strong> It locks
+        to the first machine it pairs with and refuses every other one, so your glass can never
+        show someone else's account.</div>
+        <div class="callout"><strong>To move it to another computer later: hold the power
+        button about 3 seconds, then let go.</strong> The <em>release</em> is what frees it —
+        <strong>switching the device off does not</strong>, however long you hold. Let go before
+        3 seconds and nothing happens; hold past 6 seconds and it cancels, so a real power-off
+        never wipes a working pairing by accident. Then forget KopiMeter on the old computer
+        <em>before</em> pairing the new one, or the old one claims it straight back.</div>
         <button class="markdone">Mark done</button>
       </div>
       <div class="visual">
