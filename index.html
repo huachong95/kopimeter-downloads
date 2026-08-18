@@ -903,7 +903,18 @@
         <p><strong>No computer</strong> means it hasn't found your machine at all — check the pairing.
         <strong>No pour yet</strong> means it's connected but no reading has arrived. Either way, check the
         cup icon is in your tray; if it isn't, open KopiMeter from the Start menu or Applications folder.</p></div></details>
-      <details><summary>The tray says Scanning and stays there</summary>
+      <details><summary>Bluetooth shows KopiMeter but Connect never sticks</summary>
+        <div class="ans"><p>Almost always because the device is still owned by another
+        computer. It locks to one machine on purpose, so it accepts the pairing, sees a
+        machine it doesn't belong to, and drops it again — which looks exactly like the
+        connection failing.</p>
+        <p><strong>Release it, then pair again:</strong> forget KopiMeter on the computer that
+        owns it (and on this one), then <strong>hold the device's power button about 3
+        seconds and let go</strong>. Pair from this computer, and it will stick.</p>
+        <p class="means">If you only ever paired this one computer, do the same thing anyway —
+        it clears whatever half-finished pairing is in the way.</p></div></details>
+
+        <details><summary>The tray says Scanning and stays there</summary>
         <div class="ans"><p class="means">The app can't find your device.</p>
         <p>Check it's powered and nearby. Still stuck? Remove it in Bluetooth settings and pair again.</p></div></details>
       <details><summary>The tray says "token expired — run claude login"</summary>
@@ -944,7 +955,17 @@
       <details><summary>Does it work if my computer is asleep or off?</summary>
         <div class="ans"><p>No — the app fetches the numbers. While the computer sleeps the device keeps showing the last level it received, and catches up within a minute of waking.</p></div></details>
       <details><summary>Can I use it with more than one computer?</summary>
-        <div class="ans"><p>Pair it with whichever machine you work on. One at a time; to move it, pair with the new machine and install the app there.</p></div></details>
+        <div class="ans"><p>One at a time, and the device enforces it: the first computer you
+        pair with becomes its owner, and it refuses every other machine so your numbers can
+        never come from someone else's account.</p>
+        <p><strong>To move it to a different computer, release it first.</strong>
+        <strong>Hold the power button for about 3 seconds, then let go</strong> — the release
+        is what does it. Let go before 3 seconds and nothing happens; keep holding past
+        6&nbsp;seconds and it cancels, so holding the button to switch the device off never
+        wipes your pairing by accident.</p>
+        <p class="means">Then <strong>forget KopiMeter on the old computer</strong> — otherwise
+        it may grab the device back the moment it starts advertising, and become the owner
+        again. After that, pair from the new computer and install the app there.</p></div></details>
       <details><summary>Does it need Wi-Fi?</summary>
         <div class="ans"><p>The device doesn't — it uses Bluetooth to your computer. Your computer needs internet, which it already has.</p></div></details>
       <details><summary>Why does my usage sometimes jump?</summary>
